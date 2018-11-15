@@ -19,8 +19,7 @@
         (let ((close-tag (if (null? opt) ">" (car opt) )))
            (cond 
              ((symbol? tag) (string-append "<" (symbol->string tag) close-tag))
-             ((list? tag) 
-               (string-append 
+             ((list? tag) (string-append 
                  "<" 
                  (symbol->string (car tag))
                  (apply 
@@ -74,6 +73,9 @@
 
                  ((and (list? code) (eq? (car code) 'elbow-load))
                         (elbow-markup-aux-elbow-load (cadr code) env env-contents))
+
+                 ((and (list? code) (eq? (car code) 'elbow-load*))
+                        (loop (elbow-markup-aux-elbow-load (cadr code) env env-contents)))
 
                  ((and (list? code) (null? (cdr code)))
                               (if output-tag 
