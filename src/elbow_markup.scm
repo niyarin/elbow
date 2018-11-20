@@ -41,14 +41,14 @@
                   close-tag)))))
 
       (define (elbow-markup-string-html-escape str);TODO 未完成
-         (let ((conv-patterns '(("<" . "&lt;")(">" . "&gt;"))))
-           (let loop ((ls conv-patterns)(res str))
+         (let ((conv-patterns '(("<" . "&lt;")(">" . "&gt;")("&" . "&amp;"))))
+           (let loop ((ls conv-patterns)(res str) (prev-index 0))
              (if (null? ls)
                res
-               (let ((start-index (string-contains res (caar ls))))
+               (let ((start-index (string-contains res (caar ls) prev-index)))
                   (if start-index
-                    (loop ls (string-replace res  (cdar ls) start-index (+ start-index (string-length (caar ls)))))
-                    (loop (cdr ls) res)))))))
+                    (loop ls (string-replace res  (cdar ls) start-index (+ start-index (string-length (caar ls)))) (+ start-index (string-length (caar ls))))
+                    (loop (cdr ls) res 0)))))))
 
 
       (define (elbow-markup-aux-convert-close-tag tag)
