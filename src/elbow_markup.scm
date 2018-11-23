@@ -41,7 +41,7 @@
                   close-tag)))))
 
       (define (elbow-markup-string-html-escape str);TODO 未完成
-         (let ((conv-patterns '(("<" . "&lt;")(">" . "&gt;")("&" . "&amp;"))))
+         (let ((conv-patterns '(("&" . "&amp;")("<" . "&lt;")(">" . "&gt;"))))
            (let loop ((ls conv-patterns)(res str) (prev-index 0))
              (if (null? ls)
                res
@@ -78,9 +78,13 @@
                         (loop (elbow-markup-aux-elbow-load (cadr code) env env-contents)))
 
                  ((and (list? code) (null? (cdr code)))
-                              (if output-tag 
-                                 (elbow-markup-aux-convert-open-tag (car code) env env-contents "/>")
-                                 "" ))
+                        (if output-tag 
+                           (elbow-markup-aux-convert-open-tag (car code) env env-contents "/>")
+                           "" ))
+
+                 ((and (list? code) (eq? (car code) 'elbow-escape-html))
+                   (elbow-markup-string-html-escape 
+                         (loop (cadr code))))
 
                 ((list? code)
                   (let ((open-tag
@@ -97,3 +101,17 @@
                                    (apply string-append bodies)
                                    close-tag)))
         ))))))
+
+#|
+;test
+(import (scheme base)
+        (scheme write)
+        (scheme read)
+        (elbow markup)
+        )
+(display
+(elbow-markup-convert-html '(div (elbow-escape-html (elbow-load test-data)))
+                            '()
+                            '((test-data "<div>test</div>")))
+)(newline)
+|#
