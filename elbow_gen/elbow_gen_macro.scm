@@ -22,9 +22,10 @@
    (elbow-gen-embed
      elbow-document
 
-     ((arg f function "target function")
-      (arg init object "init")
-      (arg ls list "list target")
+     ((brief "srfi1:reduce function")
+      (param f function "target function")
+      (param init object "init")
+      (param ls list "list target")
       (return object "reduce result"))
 
      (lambda (f init ls)
