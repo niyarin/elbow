@@ -71,20 +71,20 @@
                 ((null? code) '())
                 ((string? code) code)
 
-                 ((and (list? code) (eq? (car code) 'elbow-load))
+                ((and (list? code) (eq? (car code) 'elbow-load))
                         (elbow-markup-aux-elbow-load (cadr code) env env-contents))
 
-                 ((and (list? code) (eq? (car code) 'elbow-load*))
+                ((and (list? code) (eq? (car code) 'elbow-load*))
                         (loop (elbow-markup-aux-elbow-load (cadr code) env env-contents)))
 
-                 ((and (list? code) (null? (cdr code)))
+                ((and (list? code) (eq? (car code) 'elbow-escape-html))
+                   (elbow-markup-string-html-escape 
+                         (loop (cadr code))))
+
+                ((and (list? code) (null? (cdr code)))
                         (if output-tag 
                            (elbow-markup-aux-convert-open-tag (car code) env env-contents "/>")
                            "" ))
-
-                 ((and (list? code) (eq? (car code) 'elbow-escape-html))
-                   (elbow-markup-string-html-escape 
-                         (loop (cadr code))))
 
                 ((list? code)
                   (let ((open-tag
