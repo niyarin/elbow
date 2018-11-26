@@ -80,6 +80,17 @@
                 ((and (list? code) (eq? (car code) 'elbow-escape-html))
                    (elbow-markup-string-html-escape 
                          (loop (cadr code))))
+                
+                ((and (list? code) (eq? (car code) 'elbow-begin))
+                  (let ((res ""))
+                    (for-each
+                      (lambda (begin-content)
+                        (set! res
+                          (string-append 
+                            res
+                            (loop begin-content))))
+                        (cdr code))
+                    res))
 
                 ((and (list? code) (eq? (car code) 'elbow-for-each))
                    (let ((ls (loop (caddr code)));must be list
@@ -128,9 +139,8 @@
                               (elbow-for-each 
                                 %aiu
                                 (elbow-load test-data2)
-                                (div (elbow-load %aiu) (br))))
+                                (elbow-begin (elbow-load %aiu) (br))))
                             '()
                             '((test-data "<div>test</div>")
                               (test-data2 ("abc" "def" "ghi" "jkl"))))
 )(newline)
-|#
