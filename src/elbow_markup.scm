@@ -81,6 +81,20 @@
                    (elbow-markup-string-html-escape 
                          (loop (cadr code))))
 
+                ((and (list? code) (eq? (car code) 'elbow-for-each))
+                   (let ((ls (loop (caddr code)));must be list
+                         (bind (cadr code)));must be symbol
+                     (let ((res ""))
+                        (for-each
+                          (lambda (obj)
+                              (set! res 
+                                (string-append 
+                                  res
+                                  (elbow-markup-convert-html (cadddr code) (cons (list bind obj) env) env-contents)
+                                  )))
+                           ls)
+                        res)))
+
                 ((and (list? code) (null? (cdr code)))
                         (if output-tag 
                            (elbow-markup-aux-convert-open-tag (car code) env env-contents "/>")
@@ -101,7 +115,6 @@
                                    (apply string-append bodies)
                                    close-tag)))
         ))))))
-
 #|
 ;test
 (import (scheme base)
@@ -110,8 +123,14 @@
         (elbow markup)
         )
 (display
-(elbow-markup-convert-html '(div (elbow-escape-html (elbow-load test-data)))
+(elbow-markup-convert-html '(div 
+                              (elbow-escape-html (elbow-load test-data))
+                              (elbow-for-each 
+                                %aiu
+                                (elbow-load test-data2)
+                                (div (elbow-load %aiu) (br))))
                             '()
-                            '((test-data "<div>test</div>")))
+                            '((test-data "<div>test</div>")
+                              (test-data2 ("abc" "def" "ghi" "jkl"))))
 )(newline)
 |#
