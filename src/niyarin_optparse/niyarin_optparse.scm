@@ -42,14 +42,13 @@
 
 
           (define (loop-end input res positional-state optional-state)
-            (when (and (not (null? (cdr (state-values positional-state))))
-                       (car positional-state))
+            (when (not (null? (cdr (state-values positional-state))))
                   (unless (or (state-nargs-zero? positional-state)
                                (eqv? (state-nargs positional-state) '*))
                      (error "not match" (caaar positional-state)))
                   (set! res (cons (reverse (state-values positional-state)) res))
-                  (set-car! positional-state (cdar positional-state)))
-
+                  (when (not (null? (car positional-state)))
+                     (set-car! positional-state (cdar positional-state))))
             (let loop ((ps (car positional-state)))
               (unless (null? ps)
                   (let ((default (assv 'default (car ps)))
@@ -77,7 +76,7 @@
 
           (let loop ((input input)
                      (res '())
-                     (positional-state (state-create-new-state (car positional-arguments) positional-arguments 1));current positional-argument, nargs ,default , values
+                     (positional-state (state-create-new-state (car positional-arguments) (cdr positional-arguments) 1));current positional-argument, nargs ,default , values
                      (optional-state (list #f #f #f #f)));current optional-argument , nargs ,default , values
             (if (null? input)
               (loop-end input res positional-state optional-state)
@@ -109,13 +108,13 @@
                             is-optional))
                      (loop input (cons (reverse (state-values optional-state)) res) positional-state '(#f #f #f #f)))
 
-                  ((null? (car positional-state))
+                  ((and (null? (car positional-state)) (state-nargs-zero? positional-state))
                      (error "not match" (car input)))
 
                   ((state-nargs-zero? positional-state)
                     (let ((new-res (cons (reverse  (state-values positional-state)) res))
-                          (new-state (state-create-new-state positional-state (cdar positional-state) 1)))
-                      (loop input res  new-state optional-state)
+                          (new-state (state-create-new-state (caar positional-state) (cdar positional-state) 1)))
+                      (loop input new-res  new-state optional-state)
                       ))
                   
                   (else 
