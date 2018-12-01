@@ -9,11 +9,26 @@
    (begin 
 
      (define (elbow-init command-line-options)
-         (display "init elbow project")(newline)
-         (display command-line-options)(newline))
+       (let ((init-options 
+               '(("target-directory" 1))))
+         (elbow-init-write
+            (let loop ((options (cond ((assoc "options" command-line-options) => cdr) (else '()))) (res '()))
+              (cond
+                ((null? options) res)
+                ((assoc (car options) init-options)
+                     =>  (lambda (opt-size-pair)
+                           (cond 
+                             ((= (cadr opt-size-pair) 0)
+                              (loop (cdr options) (cons (list (car options) #t) res)))
+                             ((= (cadr opt-size-pair) 1)
+                              (loop (cddr options) (cons (list (car options) (cadr options)) res))))))
+                (else 
+                  (error "undefined option " (car options)))
+              ))
+         )))
 
      (define (elbow-init-write config)
-        (let ((target-directory (cond ((assv  'target-directory config) => cadr ))));末尾に/を許容する?
+        (let ((target-directory (cond ((assoc  "target-directory" config) => cadr )(else (error "error")))));末尾に/を許容する?
           ;TODO ディレクトリ存在確認(すでにあったら、エラーして終了)
           (create-directory* target-directory)
           (create-directory* (string-append target-directory "/" "contents"))
