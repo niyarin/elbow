@@ -17,11 +17,11 @@
            (elbow subcontents)
            (niyarin non-portable-utils directory-library-wrapper))
 
-   (export elbow-full-build-full-build)
+   (export elbow-full-build)
 
    (begin
      ;末尾に/がいる
-      (define (elbow-full-build-full-build contents-dir template-dir output-dir)
+      (define (elbow-full-build contents-dir template-dir output-dir)
         (let ((contents-config 
                   (call-with-input-file (string-append contents-dir "config.elbow") (lambda (port) (read port))))
               (template 
