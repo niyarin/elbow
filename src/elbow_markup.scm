@@ -126,21 +126,3 @@
                                    (apply string-append bodies)
                                    close-tag)))
         ))))))
-#|
-;test
-(import (scheme base)
-        (scheme write)
-        (scheme read)
-        (elbow markup)
-        )
-(display
-(elbow-markup-convert-html '(div 
-                              (elbow-escape-html (elbow-load test-data))
-                              (elbow-for-each 
-                                %aiu
-                                (elbow-load test-data2)
-                                (elbow-begin (elbow-load %aiu) (br))))
-                            '()
-                            '((test-data "<div>test</div>")
-                              (test-data2 ("abc" "def" "ghi" "jkl"))))
-)(newline)

@@ -17,7 +17,7 @@
            (elbow subcontents)
            (niyarin non-portable-utils directory-library-wrapper))
 
-   (export elbow-full-build)
+   (export elbow-full-build elbow-full-build-cmd-opt )
 
    (begin
      ;末尾に/がいる
@@ -95,4 +95,29 @@
          (create-directory* (string-append output-dir "tags/"))
          (copy-directory* (string-append template-dir "resources") (string-append output-dir "resources"))
          )
+
+
+       (define (elbow-full-build-cmd-opt command-line-options)
+          (let ((init-options 
+                  '(("contents-directory" 1)("template-directory" 1)("output-directory" 1))))
+            (let ((parsed-option
+                  (let loop ((options (cond ((assoc "options" command-line-options) => cdr) (else '()))) (res '()))
+                    (cond
+                      ((null? options) res)
+                      ((assoc (car options) init-options)
+                           =>  (lambda (opt-size-pair)
+                                 (cond 
+                                   ((= (cadr opt-size-pair) 0)
+                                    (loop (cdr options) (cons (list (car options) #t) res)))
+                                   ((= (cadr opt-size-pair) 1)
+                                    (loop (cddr options) (cons (list (car options) (cadr options)) res))))))
+                      (else 
+                        (error "undefined option " (car options))))))
+                  )
+              (let ((contents-directory (cond ((assoc "contents-directory" parsed-option) => cadr)(error "error")))
+                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(error "error")))
+                    (output-directory (cond ((assoc "output-directory" parsed-option) => cadr)(error "error"))))
+                  (elbow-full-build contents-directory template-directory output-directory)
+              ))))
+
       ))
