@@ -10,7 +10,7 @@
 
      (define (elbow-init command-line-options)
        (let ((init-options 
-               '(("target-directory" 1))))
+               '(("contents-directory" 1))))
          (elbow-init-write
             (let loop ((options (cond ((assoc "options" command-line-options) => cdr) (else '()))) (res '()))
               (cond
@@ -28,14 +28,14 @@
          )))
 
      (define (elbow-init-write config)
-        (let ((target-directory (cond ((assoc  "target-directory" config) => cadr )(else (error "error")))));末尾に/を許容する?
+        (let ((contents-directory (cond ((assoc  "contents-directory" config) => cadr )(else (error "error")))));末尾に/を許容する?
           ;TODO ディレクトリ存在確認(すでにあったら、エラーして終了)
-          (create-directory* target-directory)
-          (create-directory* (string-append target-directory "/" "contents"))
-          (create-directory* (string-append target-directory "/" "resources"))
+          (create-directory* contents-directory)
+          (create-directory* (string-append contents-directory "/" "contents"))
+          (create-directory* (string-append contents-directory "/" "resources"))
 
           (call-with-output-file 
-            (string-append target-directory "/" "config.elbow")
+            (string-append contents-directory "/" "config.elbow")
             (lambda (port)
               (write config port )))
           ))
