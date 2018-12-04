@@ -28,9 +28,10 @@
          )))
 
      (define (elbow-init-write config)
-        (let ((contents-directory (cond ((assoc  "contents-directory" config) => cadr )(else (error "error")))));末尾に/を許容する?
+        (let ((contents-directory (cond ((assoc  "contents-directory" config) => cadr )(else "."))));末尾に/を許容する?
           ;TODO ディレクトリ存在確認(すでにあったら、エラーして終了)
-          (create-directory* contents-directory)
+          (unless (string=? contents-directory ".")
+             (create-directory* contents-directory))
           (create-directory* (string-append contents-directory "/" "contents"))
           (create-directory* (string-append contents-directory "/" "resources"))
 
