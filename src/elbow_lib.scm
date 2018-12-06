@@ -38,6 +38,8 @@
                             (else c))))
                    (loop (+ index 1) (string-append res (string escaped-c)))))))
 
+      (define (elbow-lib-warning text)
+        (display text (current-error-port)))
 
       (define (elbow-lib-generate-short-text env content len)
         (let* ((body (cadr (assv '*contents-body* content)))
