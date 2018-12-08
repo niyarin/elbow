@@ -15,10 +15,12 @@
    (begin
 
      (define (elbow-date-tree-decompose-hyphen-date-string hyphen-date-string)
+       (if (zero? (string-length hyphen-date-string))
+         (list 0 0 0 0)
          (let ((date-list (map string->number (string-split hyphen-date-string "-"))))
            (if (= (length date-list)  3)
              (append date-list (list 0))
-             date-list)))
+             date-list))))
       
       (define (elbow-date-tree-date-list? date-list)
         (not
