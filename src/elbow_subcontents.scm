@@ -67,7 +67,7 @@
                                 env-contents)))
 
                      (call-with-output-file 
-                         (string-append output-dir "tags/" (vector-ref page-links i) )
+                         (string-append output-dir "/tags/" (vector-ref page-links i) )
                          (lambda (port) 
                            (display 
                               (elbow-markup-convert-html template env env-contents)
