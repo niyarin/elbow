@@ -23,15 +23,15 @@
      ;末尾に/がいる
       (define (elbow-full-build contents-dir template-dir output-dir)
         (let ((contents-config 
-                  (call-with-input-file (string-append contents-dir "config.elbow") (lambda (port) (read port))))
+                  (call-with-input-file (string-append contents-dir "/config.elbow") (lambda (port) (read port))))
               (template 
-                 (call-with-input-file (string-append template-dir "template.elbow") (lambda (port) (read port))))
+                 (call-with-input-file (string-append template-dir "/template.elbow") (lambda (port) (read port))))
 
               (tag-contents-env ;TODO:template直下にあるという前提(あとで、設定で変更できるようにする
-                  (call-with-input-file (string-append template-dir "tag_contents.elbow") (lambda (port) (read port))))
+                  (call-with-input-file (string-append template-dir "/tag_contents.elbow") (lambda (port) (read port))))
 
               (contents-original
-                (let-values (((dir files) ( directory-list2-add-path (string-append contents-dir "contents"))))
+                (let-values (((dir files) ( directory-list2-add-path (string-append contents-dir "/contents"))))
                    (map
                      (lambda (fname) (call-with-input-file fname (lambda (port) (read port))))
                      files)
@@ -92,8 +92,8 @@
 
        (define (elbow-full-build-create-output-dirs output-dir template-dir)
          (create-directory* output-dir)
-         (create-directory* (string-append output-dir "tags/"))
-         (copy-directory* (string-append template-dir "resources") (string-append output-dir "resources"))
+         (create-directory* (string-append output-dir "/tags/"))
+         (copy-directory* (string-append template-dir "resources") (string-append output-dir "/resources"))
          )
 
 
@@ -114,9 +114,9 @@
                       (else 
                         (error "undefined option " (car options))))))
                   )
-              (let ((contents-directory (cond ((assoc "contents-directory" parsed-option) => cadr)(error "error")))
-                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(error "error")))
-                    (output-directory (cond ((assoc "output-directory" parsed-option) => cadr)(error "error"))))
+              (let ((contents-directory (cond ((assoc "contents-directory" parsed-option) => cadr)(else ".")))
+                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(else (error "error"))))
+                    (output-directory (cond ((assoc "output-directory" parsed-option) => cadr)(else "./build"))))
                   (elbow-full-build contents-directory template-directory output-directory)
               ))))
 
