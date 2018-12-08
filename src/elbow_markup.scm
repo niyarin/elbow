@@ -77,6 +77,12 @@
                 ((and (list? code) (eq? (car code) 'elbow-load*))
                         (loop (elbow-markup-aux-elbow-load (cadr code) env env-contents)))
 
+                ((and (list? code) (eq? (car code) 'elbow-when-set?))
+                   (if (or (assq (cadr code) env) (assq (cadr code) env-contents))
+                     (loop (caddr code))
+                     ""))
+
+
                 ((and (list? code) (eq? (car code) 'elbow-escape-html))
                    (elbow-markup-string-html-escape 
                          (loop (cadr code))))
@@ -105,6 +111,21 @@
                                   )))
                            ls)
                         res)))
+
+                ((and (list? code) (eq? (car code) 'elbow-multiple-for-each))
+                 (let ((ls (loop (caddr code)))
+                       (binds (cadr code)))
+                   (let ((res ""))
+                      (for-each
+                        (lambda (objects)
+                          (let ((new-env 
+                                  (append (map list binds objects) env)))
+                            (set! res
+                              (string-append
+                                res
+                                (elbow-markup-convert-html (cadddr code) new-env env-contents)))))
+                        ls)
+                      res)))
 
                 ((and (list? code) (null? (cdr code)))
                         (if output-tag 
