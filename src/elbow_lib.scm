@@ -1,12 +1,15 @@
 (include "./elbow_markup.scm")
+(include "./niyarin-rainbow-write/niyarin-rainbow-write.scm")
+
 (define-library (elbow lib)
    (import (scheme base)
            (srfi 114)
            (scheme set)
            (scheme write)
            (elbow markup)
+           (niyarin rainbow write)
            )
-   (export elbow-lib-tag-escape elbow-lib-generate-short-text)
+   (export elbow-lib-tag-escape elbow-lib-generate-short-text elbow-lib-warning)
    (begin 
 
      (define elbow-lib-elbow-commands
@@ -39,7 +42,7 @@
                    (loop (+ index 1) (string-append res (string escaped-c)))))))
 
       (define (elbow-lib-warning text)
-        (display text (current-error-port)))
+        (display-second-color  text (current-error-port)))
 
       (define (elbow-lib-generate-short-text env content len)
         (let* ((body (cadr (assv '*contents-body* content)))
