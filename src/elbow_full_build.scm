@@ -58,6 +58,14 @@
          ;Create output-dir
          (elbow-full-build-create-output-dirs output-dir template-dir)
 
+          (for-each
+            (lambda (content)
+              (display ">>>>>")(newline)
+              (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "..") content)))(newline)
+              (display "<<<")(newline)(newline)
+              )
+            contents-original)
+
           (let-values 
             (((ids-contents tag-contents file-names) (elbow-contents-preprocess contents-original)))
              (let ((tag-pages
@@ -81,10 +89,10 @@
                               (list 
                                 (list '*contents-title* (string-append "TAGS:" tag))
                                 (list '*contents-tag-name* tag)
-                                (list '*contents-root-relative-path*  "../"))
+                                (list '*contents-root-relative-path*  ".."))
                               tag-contents-env)
                         output-dir 
-                        2)
+                        5)
                       ))
                  tag-pages)
         ))))

@@ -35,7 +35,7 @@
 
        (let* ((page-size (ceiling (/ (length subcontents) contents-number-per-page)))
               (root-dir (cadr (assv '*contents-root-relative-path*  env-contents)))
-              (base-name (string-append root-dir "tags/"  (elbow-lib-tag-escape (cadr (assv '*contents-tag-name* env-contents)))))
+              (base-name (string-append root-dir "/tags/"  (elbow-lib-tag-escape (cadr (assv '*contents-tag-name* env-contents)))))
               (page-links
                 (let loop ((i 0) (res-list '()))
                   (cond 
