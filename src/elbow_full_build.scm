@@ -33,7 +33,16 @@
               (contents-original
                 (let-values (((dir files) ( directory-list2-add-path (string-append contents-dir "/contents"))))
                    (map
-                     (lambda (fname) (call-with-input-file fname (lambda (port) (read port))))
+                     (lambda (fname) 
+                       (call-with-input-file 
+                         fname 
+                         (lambda (port) 
+                           (cons 
+                             (list 
+                               '*contents-file-name* 
+                               (let-values (((_ name extension) (decompose-path fname))) 
+                                           (string-append name "." extension)))
+                             (read port)))))
                      files)
                    ))
               (all-tags (set equal-comparator)))
@@ -57,13 +66,12 @@
          
          ;Create output-dir
          (elbow-full-build-create-output-dirs output-dir template-dir)
-
-          (for-each
+         (for-each
             (lambda (content)
-              (display ">>>>>")(newline)
-              (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "..") content)))(newline)
-              (display "<<<")(newline)(newline)
-              )
+              (call-with-output-file
+                (string-append output-dir "/contents/" (cadr (assq '*contents-file-name* content)))
+                (lambda (port)
+                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "..") content)) port))))
             contents-original)
 
           (let-values 
@@ -102,6 +110,7 @@
          (create-directory* output-dir)
          (create-directory* (string-append output-dir "/tags/"))
          (copy-directory* (string-append template-dir "resources") (string-append output-dir "/resources"))
+         (create-directory* (string-append output-dir "/contents"))
          )
 
 

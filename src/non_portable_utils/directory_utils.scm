@@ -1,7 +1,7 @@
 (define-library (niyarin non-portable-utils directory-library-wrapper)
    (cond-expand
      (gauche
-       (import (only (rename (file util) (copy-directory* org-copy-directory*)) current-directory create-directory* delete-directory* directory-list2  org-copy-directory*)
+       (import (only (rename (file util) (copy-directory* org-copy-directory*)) current-directory create-directory* delete-directory* directory-list2  org-copy-directory* decompose-path)
                (scheme base))
 
        (begin 
@@ -14,7 +14,7 @@
        )
 
      (sagittarius
-       (import (only (rename (util file) (copy-directory copy-directory*)) create-directory* delete-directory* path-for-each copy-directory*)
+       (import (only (rename (util file) (copy-directory copy-directory*)) create-directory* delete-directory* path-for-each copy-directory* decompose-path)
                (scheme base))
         (begin 
            (define (directory-list2-add-path dir)
@@ -32,5 +32,5 @@
 
      (else 
        ("ERROR:This Scheme Imprementation is not supported.")))
-   (export create-directory* delete-directory* directory-list2-add-path copy-directory*)
+   (export create-directory* delete-directory* directory-list2-add-path copy-directory* decompose-path)
    )
