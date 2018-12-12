@@ -63,7 +63,19 @@
                set-adjoin! 
                (cons all-tags (cadr (assv '*contents-tags* content)))))
            contents-original)
-         
+ 
+         (unless (assq '*site-selected-tags* contents-config)
+            (set! contents-config
+               (cons 
+                 (list '*site-selected-tags 
+                       (let loop ((i 0) (tags (set->list all-tags)) (res '())) 
+                         (cond 
+                           ((null? tags) res)
+                           ((= i 5) res);この定数あとでconfigにいれる。
+                           (else 
+                             (loop (+ i 1) (cdr tags) (cons (car tags) res))))))
+                 contents-config)))
+
          ;Create output-dir
          (elbow-full-build-create-output-dirs output-dir template-dir)
          (for-each
@@ -102,9 +114,7 @@
                         output-dir 
                         5)
                       ))
-                 tag-pages)
-        ))))
-
+                 tag-pages))))) 
 
        (define (elbow-full-build-create-output-dirs output-dir template-dir)
          (create-directory* output-dir)
