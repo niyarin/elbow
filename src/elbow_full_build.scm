@@ -43,7 +43,7 @@
                                (let-values (((_ name extension) (decompose-path fname))) 
                                            (string-append name "." extension)))
                              (read port)))))
-                     (filter (lambda (fname) (not (char=? (string-ref fname 0) #\.)))files))
+                     (filter (lambda (fpath) (let-values (((_ fname __) (decompose-path fpath)))(not (char=? (string-ref fname 0) #\.)))) files))
                    ))
               (all-tags (set equal-comparator)))
 
