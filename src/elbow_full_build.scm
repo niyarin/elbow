@@ -48,15 +48,20 @@
               (all-tags (set equal-comparator)))
 
 
-          ;Add short text.
-          (set! contents-original 
-                (map 
+          ;Add short-text & contents-sub-directory-name.
+          (set! contents-original
+                (map
                   (lambda (content)
-                     (cons 
-                       (list '*contents-short-text* (elbow-lib-generate-short-text '() content 100))
-                       (cons 
-                         (list '*contents-sub-directory*  (elbow-contnts-create-sub-directory-name content))
-                         content)))
+                    (append
+                      (list
+                        (list '*contents-short-text* (elbow-lib-generate-short-text '() content 100))
+                        (list '*contents-sub-directory*  (elbow-contnts-create-sub-directory-name content))
+                        (list '*contents-tags-and-links*
+                              (map
+                                (lambda (tag)
+                                  (list tag ""))
+                                (cadr (assv '*contents-tags* content)))))
+                      content))
                   contents-original))
 
          ;Generate tag list.
@@ -96,7 +101,7 @@
                                           (elbow-subcontents-tag-file-base-name 
                                             (append (list 
                                                       (list '*contents-tag-name* (car tags)) 
-                                                      (list '*contents-root-relative-path*  ".."))
+                                                      (list '*contents-root-relative-path*  "/"))
                                                     tag-contents-env))
                                        ".html"))
                                  res))))))
@@ -115,7 +120,7 @@
               (call-with-output-file
                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
-                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "../../") content)) port))))
+                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "../..") content)) port))))
             contents-original)
 
           (let-values 
