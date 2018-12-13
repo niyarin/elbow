@@ -34,7 +34,12 @@
                     (list (cadr (assv '*contents-title* (car ls) ))
                           (cadr (assv '*contents-short-text* (car ls)))
                           "" ;thumbnail
-                          "");link
+                          (string-append 
+                            (cadr (assq '*contents-root-relative-path* env-contents))
+                            "/contents/"
+                            (cadr (assq '*contents-sub-directory* (car ls)))
+                            "/"
+                            (cadr (assq '*contents-file-name* (car ls)))));link
                     res))))))
 
        (let* ((page-size (ceiling (/ (length subcontents) contents-number-per-page)))
