@@ -17,7 +17,7 @@
           (string-append root-dir "/tags/"  (elbow-lib-tag-escape (cadr (assv '*contents-tag-name* env-contents))))))
 
      ;コンテンツをまとめてページ(タグ、日付、など)を生成する　
-     (define (elbow-subcontents-create-sub-contents template subcontents env env-contents output-dir contents-number-per-page)
+     (define (elbow-subcontents-create-sub-contents base-name-generator template subcontents env env-contents output-dir contents-number-per-page)
 
        (define (elbow-subcontents-aux-title-text-thumbnail&tails ls n)
          (let loop ((i 0)(ls ls) (res '()))
@@ -44,7 +44,7 @@
 
        (let* ((page-size (ceiling (/ (length subcontents) contents-number-per-page)))
               (root-dir (cadr (assv '*contents-root-relative-path*  env-contents)))
-              (base-name (elbow-subcontents-tag-file-base-name env-contents))
+              (base-name (base-name-generator env-contents))
               (page-links
                 (let loop ((i 0) (res-list '()))
                   (cond 
@@ -76,7 +76,7 @@
                                 env-contents)))
 
                      (call-with-output-file 
-                         (string-append output-dir "/tags/" (vector-ref page-links i) )
+                         (string-append output-dir "/" (cadr (assq '*contents-sub-directory* env-contents)) "/"(vector-ref page-links i) )
                          (lambda (port) 
                            (display 
                               (elbow-markup-convert-html template env env-contents)

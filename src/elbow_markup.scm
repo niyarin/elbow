@@ -72,7 +72,8 @@
                 ((string? code) code)
 
                 ((and (list? code) (eq? (car code) 'elbow-load))
-                        (elbow-markup-aux-elbow-load (cadr code) env env-contents))
+                  (let ((env-contents (if (null? (cddr code)) env-contents (loop (caddr code)))))
+                        (elbow-markup-aux-elbow-load (cadr code) env env-contents)))
 
                 ((and (list? code) (eq? (car code) 'elbow-load*))
                         (loop (elbow-markup-aux-elbow-load (cadr code) env env-contents)))

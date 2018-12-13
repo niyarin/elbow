@@ -19,8 +19,7 @@
 
    (export elbow-full-build elbow-full-build-cmd-opt )
 
-   (begin
-     ;末尾に/がいる
+   (begin ;末尾に/がいる
       (define (elbow-full-build contents-dir template-dir output-dir)
         (let ((contents-config 
                   (call-with-input-file (string-append contents-dir "/config.elbow") (lambda (port) (read port))))
@@ -111,20 +110,22 @@
          (elbow-full-build-create-output-dirs output-dir template-dir)
 
 
-         ;Create contents
-         (for-each
-            (lambda (content)
-               (create-directory*  
-                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content))));TODO:明らかに悪そう。あとで修正する 
-
-              (call-with-output-file
-                (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
-                (lambda (port)
-                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "../..") content)) port))))
-            contents-original)
 
           (let-values 
             (((ids-contents tag-contents file-names) (elbow-contents-preprocess contents-original)))
+            
+             (set! contents-config
+                   (cons
+                     (list 
+                       '*site-recent-entries*
+                       (let ((end-index (max 0 (- (vector-length ids-contents) 6))))
+                         (let loop ((i (- (vector-length ids-contents) 1))(res '()))
+                           (if (= i end-index)
+                               res
+                               (loop (- i 1) (cons (vector-ref ids-contents i) res))))))
+                     contents-config))
+
+             ;Create tag parges
              (let ((tag-pages
                      (map 
                        (lambda (tag)
@@ -139,6 +140,7 @@
                     (let ((tag (car tag-contents-pair))
                           (sub-contents (cdr tag-contents-pair)))
                       (elbow-subcontents-create-sub-contents 
+                        elbow-subcontents-tag-file-base-name
                         template 
                         sub-contents 
                         contents-config
@@ -146,12 +148,48 @@
                               (list 
                                 (list '*contents-title* (string-append "TAGS:" tag))
                                 (list '*contents-tag-name* tag)
+                                (list '*contents-sub-directory* "tags")
                                 (list '*contents-root-relative-path*  ".."))
                               tag-contents-env)
                         output-dir 
                         5)
                       ))
-                 tag-pages))))) 
+                 tag-pages))
+             
+  
+            ;Create index
+            (elbow-subcontents-create-sub-contents 
+               (lambda (_) "index")
+               template 
+               (vector->list ids-contents )
+               contents-config
+               (append 
+                     (list 
+                       (list '*contents-title* (string-append "index"))
+                       (list '*contents-sub-directory* "./")
+                       (list '*contents-root-relative-path*  "./"))
+                     tag-contents-env)
+               output-dir 
+               10)
+
+
+             )
+         
+
+
+         ;Create contents
+         (for-each
+            (lambda (content)
+               (create-directory*  
+                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content))));TODO:明らかに悪そう。あとで修正する 
+
+              (call-with-output-file
+                (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
+                (lambda (port)
+                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "../..") content)) port))))
+            contents-original)         
+          
+          )) 
 
        (define (elbow-full-build-create-output-dirs output-dir template-dir)
          (create-directory* output-dir)
