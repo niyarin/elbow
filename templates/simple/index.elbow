@@ -1,0 +1,14 @@
+((*contents-title* "index")
+ (*contents-body* 
+   (div 
+
+    (elbow-when-set?
+        *contents-subpages*
+        (elbow-multiple-for-each (%title %short-text %thumbnail %link) (elbow-load *contents-subpages*)
+            (elbow-begin
+               ((a (href (elbow-load %link)))
+                  (h5 (elbow-load %title)))
+               (div 
+                   (elbow-load %short-text)))
+        ))
+   )))
