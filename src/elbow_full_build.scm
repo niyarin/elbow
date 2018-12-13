@@ -52,8 +52,11 @@
           (set! contents-original 
                 (map 
                   (lambda (content)
-                     (cons (list '*contents-short-text* (elbow-lib-generate-short-text '() content 100))
-                            content))
+                     (cons 
+                       (list '*contents-short-text* (elbow-lib-generate-short-text '() content 100))
+                       (cons 
+                         (list '*contents-sub-directory*  (elbow-contnts-create-sub-directory-name content))
+                         content)))
                   contents-original))
 
          ;Generate tag list.
@@ -74,14 +77,43 @@
                            ((= i 5) res);この定数あとでconfigにいれる。
                            (else 
                              (loop (+ i 1) (cdr tags) (cons (car tags) res))))))
+                 contents-config))
+
+             (set! contents-config
+               (cons 
+                 (list '*site-selected-tags-and-links* 
+                       (let loop ((i 0) (tags (set->list all-tags)) (res '())) 
+                         (cond 
+                           ((null? tags) res)
+                           ((= i 5) res);この定数あとでconfigにいれる。
+                           (else 
+                             (loop 
+                               (+ i 1) 
+                               (cdr tags) 
+                               (cons 
+                                 (list (car tags)  
+                                       (string-append
+                                          (elbow-subcontents-tag-file-base-name 
+                                            (append (list 
+                                                      (list '*contents-tag-name* (car tags)) 
+                                                      (list '*contents-root-relative-path*  ".."))
+                                                    tag-contents-env))
+                                       ".html"))
+                                 res))))))
                  contents-config)))
 
          ;Create output-dir
          (elbow-full-build-create-output-dirs output-dir template-dir)
+
+
+         ;Create contents
          (for-each
             (lambda (content)
+               (create-directory*  
+                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content))));TODO:明らかに悪そう。あとで修正する 
+
               (call-with-output-file
-                (string-append output-dir "/contents/" (cadr (assq '*contents-file-name* content)))
+                (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
                    (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "..") content)) port))))
             contents-original)
@@ -121,6 +153,7 @@
          (create-directory* (string-append output-dir "/tags/"))
          (copy-directory* (string-append template-dir "resources") (string-append output-dir "/resources"))
          (create-directory* (string-append output-dir "/contents"))
+         (create-directory* (string-append output-dir "/contents/contents"))
          )
 
 

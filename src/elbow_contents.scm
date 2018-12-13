@@ -13,7 +13,8 @@
 
    (export elbow-contents-preprocess 
            elbow-contents-add-aux-data-to-content 
-           elbow-contents-read-from-file)
+           elbow-contents-read-from-file
+           elbow-contnts-create-sub-directory-name)
 
    (begin
 
@@ -32,6 +33,15 @@
          )
        content)
 
+     (define (elbow-contnts-create-sub-directory-name content)
+       (cond 
+         ((assq '*contents-sub-directory* content) => (lambda (it) (cadr it)));TODO:ディレクトリがなければ自動作成するようにあとで変更
+         ((assq '*contents-date* content) =>
+            (lambda (date-string)
+              (let ((date-tree (elbow-date-tree-decompose-hyphen-date-string (cadr date-string))))
+                (string-append (number->string (car date-tree)) "-" (number->string (cadr date-tree))))))
+         (else "contents")
+       ))
 
      (define (elbow-contents-preprocess contents-list)
        (define (internal-elbow-contents-render-contents? contents)
