@@ -9,6 +9,7 @@
            (scheme write)
            (scheme file)
            (scheme set)
+           (only (srfi 1) filter)
            (srfi 114)
            (srfi 69)
            (elbow contents)
@@ -42,7 +43,7 @@
                                (let-values (((_ name extension) (decompose-path fname))) 
                                            (string-append name "." extension)))
                              (read port)))))
-                     files)
+                     (filter (lambda (fname) (not (char=? (string-ref fname 0) #\.)))files))
                    ))
               (all-tags (set equal-comparator)))
 
@@ -120,7 +121,7 @@
                        '*site-recent-entries*
                        (let ((end-index (max 0 (- (vector-length ids-contents) 6))))
                          (let loop ((i (- (vector-length ids-contents) 1))(res '()))
-                           (if (= i end-index)
+                           (if (<= i end-index)
                                res
                                (loop (- i 1) (cons (vector-ref ids-contents i) res))))))
                      contents-config))
