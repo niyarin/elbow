@@ -115,7 +115,7 @@
               (call-with-output-file
                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
-                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "..") content)) port))))
+                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "../../") content)) port))))
             contents-original)
 
           (let-values 
