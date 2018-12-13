@@ -119,13 +119,12 @@
                    (cons
                      (list 
                        '*site-recent-entries*
-                       (let ((end-index (max 0 (- (vector-length ids-contents) 6))))
+                       (let ((end-index (max 0 (- (vector-length ids-contents) 5))))
                          (let loop ((i (- (vector-length ids-contents) 1))(res '()))
-                           (if (<= i end-index)
+                           (if (< i end-index)
                                res
                                (loop (- i 1) (cons (vector-ref ids-contents i) res))))))
                      contents-config))
-
              ;Create tag parges
              (let ((tag-pages
                      (map 
