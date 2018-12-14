@@ -41,27 +41,31 @@
                              (list 
                                '*contents-file-name* 
                                (let-values (((_ name extension) (decompose-path fname))) 
-                                           (string-append name "." extension)))
+                                           (string-append name "." "html")))
                              (read port)))))
                      (filter (lambda (fpath) (let-values (((_ fname __) (decompose-path fpath)))(not (char=? (string-ref fname 0) #\.)))) files))
                    ))
               (all-tags (set equal-comparator)))
 
 
+
           ;Add short-text & contents-sub-directory-name.
           (set! contents-original
                 (map
                   (lambda (content)
-                    (append
-                      (list
-                        (list '*contents-short-text* (elbow-lib-generate-short-text '() content 100))
-                        (list '*contents-sub-directory*  (elbow-contnts-create-sub-directory-name content))
-                        (list '*contents-tags-and-links*
-                              (map
-                                (lambda (tag)
-                                  (list tag ""))
-                                (cadr (assv '*contents-tags* content)))))
-                      content))
+                    (let ((contents-relative-root-path "../.."))
+
+                       (append
+                         (list
+                           (list '*contents-short-text* (elbow-lib-generate-short-text '() content 100))
+                           (list '*contents-sub-directory*  (elbow-contnts-create-sub-directory-name content))
+                           (list '*contents-root-relative-path* contents-relative-root-path)
+                           (list '*contents-tags-and-links*
+                                 (map
+                                   (lambda (tag)
+                                     (list tag (string-append contents-relative-root-path "/tags/" tag ".html")))
+                                   (cadr (assv '*contents-tags* content)))))
+                         content)))
                   contents-original))
 
          ;Generate tag list.
@@ -108,8 +112,7 @@
                  contents-config)))
 
          ;Create output-dir
-         (elbow-full-build-create-output-dirs output-dir template-dir)
-
+         (elbow-full-build-create-output-dirs output-dir template-dir contents-dir )
 
 
           (let-values 
@@ -186,15 +189,16 @@
               (call-with-output-file
                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
-                   (display (elbow-markup-convert-html template contents-config (cons (list '*contents-root-relative-path* "../..") content)) port))))
-            contents-original)         
+                   (display (elbow-markup-convert-html template contents-config content) port))))
+            contents-original)
           
           )) 
 
-       (define (elbow-full-build-create-output-dirs output-dir template-dir)
+       (define (elbow-full-build-create-output-dirs output-dir  template-dir contents-dir)
          (create-directory* output-dir)
          (create-directory* (string-append output-dir "/tags/"))
          (copy-directory* (string-append template-dir "resources") (string-append output-dir "/resources"))
+         (copy-directory* (string-append contents-dir "/resources") (string-append output-dir "/contents_resources"))
          (create-directory* (string-append output-dir "/contents"))
          (create-directory* (string-append output-dir "/contents/contents"))
          )
