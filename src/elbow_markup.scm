@@ -1,13 +1,19 @@
 (define-library (elbow markup)
-   (import (scheme base)
-           (scheme cxr)
-           (scheme read)
-           (scheme file)
-           (scheme write)
-           ;(only (srfi 13) string-contains string-replace)
-           (srfi 152)
-
-           )
+   (cond-expand 
+     (srfi-152
+         (import (scheme base)
+                 (scheme cxr)
+                 (scheme read)
+                 (scheme file)
+                 (scheme write)
+                 (srfi 152)))
+     (else
+         (import (scheme base)
+                 (scheme cxr)
+                 (scheme read)
+                 (scheme file)
+                 (scheme write)
+                 (only (srfi 13) string-contains string-replace))))
 
    (export 
      elbow-markup-convert-html
