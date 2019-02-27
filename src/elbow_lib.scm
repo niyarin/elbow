@@ -2,13 +2,25 @@
 (include "./niyarin-rainbow-write/niyarin-rainbow-write.scm")
 
 (define-library (elbow lib)
-   (import (scheme base)
-           (srfi 114)
-           (scheme set)
-           (scheme write)
-           (elbow markup)
-           (niyarin rainbow write)
-           )
+   (cond-expand 
+      ((library (scheme set))
+         (import (scheme base)
+                 (srfi 114)
+                 (scheme set)
+                 (scheme write)
+                 (elbow markup)
+                 (niyarin rainbow write)
+                 ))
+      ((library (srfi 113))
+       (import (scheme base)
+                 (srfi 114)
+                 (scheme set)
+                 (scheme write)
+                 (elbow markup)
+                 (niyarin rainbow write)
+                 )))
+
+
    (export elbow-lib-tag-escape elbow-lib-generate-short-text elbow-lib-warning)
    (begin 
 
