@@ -3,10 +3,17 @@
 ;support iso8601 format
 
 (define-library (elbow utils date-tree)
-   (import (scheme base)
-           (scheme cxr)
-           (scheme write)
-           (srfi 152))
+   (cond-expand 
+     ((library (srfi 152))
+         (import (scheme base)
+                 (scheme cxr)
+                 (scheme write)
+                 (srfi 152)))
+     ((library (srfi 13))
+         (import (scheme base)
+                 (scheme cxr)
+                 (scheme write)
+                 (srfi 13))))
 
    (export elbow-date-tree-decompose-hyphen-date-string
            elbow-date-tree-date-list? 
