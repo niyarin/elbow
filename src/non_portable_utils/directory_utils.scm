@@ -6,10 +6,10 @@
 
        (begin 
          (define (directory-list2-add-path dir)
-           (directory-list2 dir :add-path? #true))
+           (directory-list2 dir ':add-path? #true))
 
          (define (copy-directory* from to)
-           (org-copy-directory* from to :if-exists :supersede))
+           (org-copy-directory* from to ':if-exists ':supersede))
          )
        )
 
