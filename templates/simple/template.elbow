@@ -111,7 +111,10 @@
                    (div (@ (class "main-contents"))
                        (header (@ (class "main-contents-title"))
                            (begin
-                           `(a (@ (href ,(string-append *contents-root-relative-path* "/index.html")))
+                           `(a (@ (href ,(string-append 
+                                           (cut-tail-slash
+                                             *contents-root-relative-path*)
+                                           "/index.html")))
                                ,*site-title*)))
                        (begin
                        `(div (@ (class "inner-contents"))
