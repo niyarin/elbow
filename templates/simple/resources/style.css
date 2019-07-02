@@ -36,6 +36,7 @@ body{
     min-height:120px;
     margin-top:10px;
     color:#666666;
+    word-wrap: break-word;
 }
 
 .sidemenu-box h4 {
