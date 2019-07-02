@@ -27,7 +27,11 @@
              (set! content (cons (list '*contents-tags-and-links* tag-and-links) content) ) 
              (loop (cdr tags)
                    (cons 
-                     (list (car tags) (string-append root-dir "tags/"  (elbow-lib-tag-escape (car tags))))
+                     (list (car tags) 
+                           (string-append 
+                             (elbow-lib-remove-tail-slashes root-dir )
+                             "tags/"  
+                             (elbow-lib-tag-escape (car tags))))
                      tag-and-links
                      ))))
          )

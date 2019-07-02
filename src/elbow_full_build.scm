@@ -82,7 +82,14 @@
                            (list '*contents-tags-and-links*
                                  (map
                                    (lambda (tag)
-                                     (list tag (string-append contents-relative-root-path "/tags/" tag ".html")))
+                                     (list 
+                                       tag 
+                                       (string-append 
+                                         (elbow-lib-remove-tail-slashes 
+                                           contents-relative-root-path )
+                                         "/tags/"
+                                         tag 
+                                         ".html")))
                                    (cadr (assv '*contents-tags* content)))))
                          content)))
                   contents-original))

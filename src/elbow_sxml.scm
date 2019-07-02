@@ -14,7 +14,7 @@
         '(*contents-tags-and-links* *contents-date* *contents-title* *contents-prev-page-link* *contents-next-page-link*))
 
       (define (elbow-sxml-make-default-environment)
-        (let ((eval-env (environment '(scheme base) '(scheme cxr)))
+        (let ((eval-env (environment '(scheme base) '(scheme cxr) '(scheme write)))
               (convert-env (set 'eq? 'begin)))
 
           (eval '(define *site-title "Title") eval-env)
