@@ -1,0 +1,32 @@
+((*contents-title* "TAGS:")
+ (*contents-body*
+   (begin
+       (list
+           'div
+            (cons
+              'div
+               (map
+                 (lambda (title-short-text-thumbnail-link)
+                   (let ((title
+                           (car title-short-text-thumbnail-link))
+                         (short-text
+                           (cadr title-short-text-thumbnail-link))
+                         (thumbnail
+                           (caddr title-short-text-thumbnail-link))
+                         (link
+                           (cadddr title-short-text-thumbnail-link)))
+                     (list
+                       'div
+                        `(a (@ (href ,link))
+                            (h5 ,title))
+                        `(div
+                           ,short-text))))
+              *contents-subpages*))
+            (list
+              'div
+              (if (null? *contents-prev-page-link*)
+                  ""
+                  `(a (@ (href ,*contents-prev-page-link*)) "&lt;=PREV"))
+              (if (null? *contents-next-page-link*)
+                  ""
+                  `(a (@ (href ,*contents-next-page-link*)) "NEXT=&gt;")))))))
