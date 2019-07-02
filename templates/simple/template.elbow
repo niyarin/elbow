@@ -49,17 +49,44 @@
                             (cons
                               'div
                                (map
-                                 (lambda (title-link)
-                                   (let ((title (car title-link))
-                                         (link (cadr title-link)))
-                                     `(a (@ (href 
-                                              ,(string-append *contents-root-relative-path*)
-                                                             "/contents/"
-                                                             ;*contents-sub-directory* ;?
-                                                             ;"/"
-                                                             ;*contents-file-name* ;?
-                                                             ))
-                                         ,*contents-title*)))
+                                 (lambda (content)
+                                   (let* ((tmp-title 
+                                           (cond 
+                                             ((assq '*contents-title* content)
+                                              => cadr)
+                                             (else "")))
+                                          (title
+                                            (if (> (string-length tmp-title) 20)
+                                              (string-append (substring tmp-title 0 17) "...")
+                                              tmp-title))
+                                          (date
+                                            (cond
+                                              ((assq '*contents-date* content)
+                                               => cadr)
+                                              (else "")))
+                                          (sub-directory  
+                                            (cond
+                                              ((assq '*contents-sub-directory* content)
+                                               => cadr)
+                                              (else "")))
+                                          (file-name
+                                            (cond
+                                              ((assq '*contents-file-name* content)
+                                               => cadr)
+                                              (else ""))))
+                                                
+                                     (list
+                                       'div
+                                       date
+                                       ":"
+                                        `(a (@ (href 
+                                                 ,(string-append *contents-root-relative-path*
+                                                                "/contents/"
+                                                                sub-directory
+                                                                "/"
+                                                                file-name
+                                                                )))
+                                            ,title))))
                                  *site-recent-entries*)))))))
 
              (div (@ (class "main"))
