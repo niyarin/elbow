@@ -40,8 +40,6 @@
               (convert-env (if (null? env) '() (cadr (assq 'convert-env env)))))
 
           (let loop ((sxml sxml))
-            (when (pair? sxml)
-               (display (car sxml))(newline))
              (cond
                ((string? sxml) sxml)
                ((null? sxml) "")

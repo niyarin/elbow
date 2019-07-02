@@ -8,11 +8,13 @@
          (import (scheme base)
                  (scheme cxr)
                  (scheme write)
+                 (srfi 19)
                  (srfi 152)))
      ((library (srfi 13))
          (import (scheme base)
                  (scheme cxr)
                  (scheme write)
+                 (srfi 19)
                  (srfi 13))))
 
    (export elbow-date-tree-decompose-hyphen-date-string
@@ -21,6 +23,9 @@
            )
 
    (begin
+     
+     (define GITHUB-DATE-FORMAT-TO-TEMPLATE
+        "~a ~b ~d ~H:~m:~S ~Y ~z")
 
      (define (elbow-date-tree-decompose-hyphen-date-string hyphen-date-string)
        (if (zero? (string-length hyphen-date-string))

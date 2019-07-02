@@ -11,10 +11,10 @@
 
    (begin
       (define elbow-sxml-contents-vars
-        '(*contents-tags-and-links* *contents-date* *contents-title*))
+        '(*contents-tags-and-links* *contents-date* *contents-title* *contents-prev-page-link* *contents-next-page-link*))
 
       (define (elbow-sxml-make-default-environment)
-        (let ((eval-env (environment '(scheme base)))
+        (let ((eval-env (environment '(scheme base) '(scheme cxr)))
               (convert-env (set 'eq? 'begin)))
 
           (eval '(define *site-title "Title") eval-env)
@@ -49,7 +49,7 @@
                (eval 
                  (list 'define (car apair) (list 'quote (cadr apair)))
                  eval-env))
-             env-contents)
+             (reverse env-contents));TODO:あとからきたもので上書きされるのでてきとーに対処　跡で治す
 
           (sxml->xml-string 
                template

@@ -14,7 +14,7 @@
       ((library (srfi 113))
        (import (scheme base)
                  (srfi 114)
-                 (scheme set)
+                 (srfi 113)
                  (scheme write)
                  (elbow markup)
                  (niyarin rainbow write)

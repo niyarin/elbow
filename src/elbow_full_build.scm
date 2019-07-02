@@ -1,6 +1,7 @@
 (include "./non_portable_utils/directory_utils"
          "./elbow_markup.scm"
          "./elbow_contents.scm" 
+         "./elbow_sxml.scm"
          "./elbow_subcontents.scm")
 
 (define-library (elbow full build)
@@ -18,6 +19,7 @@
               (elbow lib)
               (elbow markup)
               (elbow subcontents)
+              (elbow sxml)
               (niyarin non-portable-utils directory-library-wrapper)))
      ((library (srfi 113))
          (import (scheme base)
@@ -32,6 +34,7 @@
               (elbow lib)
               (elbow markup)
               (elbow subcontents)
+              (elbow sxml)
               (niyarin non-portable-utils directory-library-wrapper))))
 
    (export elbow-full-build elbow-full-build-cmd-opt )
@@ -174,7 +177,6 @@
                         5)
                       ))
                  tag-pages))
-             
   
             ;Create index
             (elbow-subcontents-create-sub-contents 
@@ -184,17 +186,13 @@
                contents-config
                (append 
                      (list 
-                       (list '*contents-title* (string-append "index"))
+                       (list '*contents-title* (string-append "INDEX"))
                        (list '*contents-sub-directory* "./")
                        (list '*contents-root-relative-path*  "./"))
                      tag-contents-env)
                output-dir 
                10)
-
-
              )
-         
-
 
          ;Create contents
          (for-each
@@ -205,7 +203,7 @@
               (call-with-output-file
                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
-                   (display (elbow-markup-convert-html template contents-config content) port))))
+                   (display (elbow-sxml-generate-html template contents-config content) port))))
             contents-original)
           
           )) 

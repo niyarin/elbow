@@ -1,6 +1,6 @@
 (define-library (elbow markup)
    (cond-expand 
-     (srfi-152
+     ((library (srfi 152))
          (import (scheme base)
                  (scheme cxr)
                  (scheme read)

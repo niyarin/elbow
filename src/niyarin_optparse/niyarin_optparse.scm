@@ -40,15 +40,31 @@
 
               (list-set! state 3 (cons val vals))))
 
+          (define (restore-current-argument! option)
+               (let ((argument-data 
+                       `(,(car (state-values option)) 
+                         ,(list 'nargs (state-nargs option)) 
+                         .
+                         ,(if (state-default option) (list (list 'default (car (state-default option)))) '() ))))
+                 (set-car! option (cons argument-data (car option)))
+                 (set-car! (cdr option) 0)
+                 (set-car! (cddr option) #f)
+                 (set-car! (cdddr option) '())))
 
           (define (loop-end input res positional-state optional-state)
-            (when (not (null? (cdr (state-values positional-state))))
+            (when (and (not (null? (state-values positional-state)))
+                       (not (null? (cdr (state-values positional-state)))))
+
                   (unless (or (state-nargs-zero? positional-state)
                                (eqv? (state-nargs positional-state) '*))
-                     (error "not match" (caaar positional-state)))
+                     (error "not match" (car (reverse (cadddr positional-state)))))
                   (set! res (cons (reverse (state-values positional-state)) res))
                   (when (not (null? (car positional-state)))
                      (set-car! positional-state (cdar positional-state))))
+
+            (when (null? (cdr (state-values positional-state)))
+               (restore-current-argument! positional-state))
+
             (let loop ((ps (car positional-state)))
               (unless (null? ps)
                   (let ((default (assv 'default (car ps)))
@@ -76,7 +92,11 @@
 
           (let loop ((input input)
                      (res '())
-                     (positional-state (state-create-new-state (car positional-arguments) (cdr positional-arguments) 1));current positional-argument, nargs ,default , values
+                     (positional-state
+                       (if (null? positional-arguments)
+                         (list '() '() '() '())
+                         (state-create-new-state (car positional-arguments) (cdr positional-arguments) 1));current positional-argument, nargs ,default , values
+                       )
                      (optional-state (list #f #f #f #f)));current optional-argument , nargs ,default , values
             (if (null? input)
               (loop-end input res positional-state optional-state)
@@ -85,6 +105,20 @@
                   ((and is-optional 
                         (not (state-current-argument optional-state)))
                     (loop (cdr input) res positional-state (state-create-new-state is-optional (car is-optional))))
+                  ((and  (>= (string-length (car input)) 3)
+                         (char=? (string-ref (car input) 0) #\-)
+                         (not (char=? (string-ref (car input) 1) #\-))
+                         (assoc (string #\- (string-ref (car input ) 1))
+                                optional-arguments string=?))
+                   => (lambda (is-optional)
+                        (loop (cons
+                                (substring (car input) 2 (string-length (car input)))
+                                (cdr input))
+                              res
+                              positional-state
+                              (state-create-new-state
+                                is-optional
+                                (car is-optional)))))
                   
                   ((or (and (integer? (state-nargs optional-state))
                             (> (state-nargs optional-state) 0)

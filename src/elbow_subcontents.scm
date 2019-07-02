@@ -1,11 +1,13 @@
 (include "./elbow_markup.scm")
+(include "./elbow_sxml.scm")
 (include "./elbow_lib.scm")
 
 
 (define-library (elbow subcontents)
    (import (scheme base)
            (scheme write)
-            (scheme file)
+           (scheme file)
+           (elbow sxml)
            (elbow markup)
            (elbow lib))
 
@@ -18,7 +20,6 @@
 
      ;コンテンツをまとめてページ(タグ、日付、など)を生成する　
      (define (elbow-subcontents-create-sub-contents base-name-generator template subcontents env env-contents output-dir contents-number-per-page)
-
        (define (elbow-subcontents-aux-title-text-thumbnail&tails ls n)
          (let loop ((i 0)(ls ls) (res '()))
            (cond 
@@ -75,12 +76,14 @@
                                 (list '*contents-subpages* title-text-thumbnails-list)
                                 env-contents)))
 
+
                      (call-with-output-file 
                          (string-append output-dir "/" (cadr (assq '*contents-sub-directory* env-contents)) "/"(vector-ref page-links i) )
                          (lambda (port) 
                            (display 
-                              (elbow-markup-convert-html template env env-contents)
+                              (elbow-sxml-generate-html template env env-contents)
                               port)))
+
 
                      (loop (+ i 1) next-subcontents))))
              ))))
