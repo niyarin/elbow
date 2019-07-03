@@ -41,7 +41,7 @@
                           "" ;thumbnail
                           (string-append 
                             (cadr (assq '*contents-root-relative-path* env-contents))
-                            "contents/"
+                            "/contents/"
                             (cadr (assq '*contents-sub-directory* (car ls)))
                             "/"
                             (cadr (assq '*contents-file-name* (car ls)))));link

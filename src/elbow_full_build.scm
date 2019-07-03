@@ -93,7 +93,6 @@
                                    (cadr (assv '*contents-tags* content)))))
                          content)))
                   contents-original))
-
          ;Generate tag list.
          (for-each 
            (lambda (content)
@@ -218,7 +217,7 @@
        (define (elbow-full-build-create-output-dirs output-dir  template-dir contents-dir)
          (create-directory* output-dir)
          (create-directory* (string-append output-dir "/tags/"))
-         (copy-directory* (string-append template-dir "resources") (string-append output-dir "/resources"))
+         (copy-directory* (string-append template-dir "/resources") (string-append output-dir "/resources"))
          (copy-directory* (string-append contents-dir "/resources") (string-append output-dir "/contents_resources"))
          (create-directory* (string-append output-dir "/contents"))
          (create-directory* (string-append output-dir "/contents/contents"))

@@ -29,7 +29,7 @@
       (define (%element? sxml)
         (and
           (list? sxml)
-          (pair? (cdr sxml))
+          (list? (cdr sxml))
           (symbol? (car sxml))))
           
 
@@ -46,7 +46,6 @@
                ((and (not (null? env))
                      (list? sxml)
                      (env-contains? convert-env (car sxml)))
-
                 (let ((eval-res
                         (eval sxml eval-env)))
                   (loop eval-res)))
@@ -63,7 +62,7 @@
                     ">"))
                ((%element? sxml)
                 (let* ((have-attribute 
-                       (%attribute-list? (cadr sxml)))
+                       (%attribute-list? (if (null? (cdr sxml)) #f (cadr sxml))))
                        (children (if have-attribute (cddr sxml) (cdr sxml)))
                        (attribute
                            (if have-attribute

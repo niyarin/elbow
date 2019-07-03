@@ -1,5 +1,6 @@
-(include "./elbow_markup.scm")
-(include "./niyarin-rainbow-write/niyarin-rainbow-write.scm")
+(include 
+  "./niyarin-rainbow-write/niyarin-rainbow-write.scm"
+  "./elbow_sxml.scm")
 
 (define-library (elbow lib)
    (cond-expand 
@@ -8,16 +9,16 @@
                  (srfi 114)
                  (scheme set)
                  (scheme write)
-                 (elbow markup)
                  (niyarin rainbow write)
+                 (elbow sxml)
                  ))
       ((library (srfi 113))
        (import (scheme base)
                  (srfi 114)
                  (srfi 113)
                  (scheme write)
-                 (elbow markup)
                  (niyarin rainbow write)
+                 (elbow sxml)
                  )))
 
    (export 
@@ -63,13 +64,14 @@
              ((zero? (string-length dir-string)) "")
              ((char=? (string-ref dir-string (- (string-length dir-string) 1)) #\/)
                 (loop (substring dir-string 0 (- (string-length dir-string) 1))))
-             (else dir-string))))
+             (else dir-string)))
+         )
 
       (define (elbow-lib-warning text)
         (display-second-color  (string-append "Warning: " text "\n") (current-error-port)))
 
       (define (elbow-lib-generate-short-text env content len)
         (let* ((body (cadr (assv '*contents-body* content)))
-               (body-string (elbow-markup-convert-html body env content #f)))
+               (body-string (elbow-sxml-generate-html body env content #f)))
               (substring body-string 0 (min len (string-length body-string)))))
       ))
