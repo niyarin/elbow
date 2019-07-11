@@ -11,7 +11,7 @@
 ;git log からテスト用データを生成するスクリプト
 
 ;usage
-;git --log --date=short|<scheme> <this script>
+;git log --date=short|<scheme> <this script>
 
 (define (get-first-word input)
   (let loop ((i 0))
