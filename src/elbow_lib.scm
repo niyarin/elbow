@@ -26,6 +26,7 @@
      elbow-lib-generate-short-text 
      elbow-lib-warning 
      elbow-lib-error-msg 
+     elbow-error 
      elbow-lib-remove-tail-slashes )
 
    (begin 
@@ -71,9 +72,14 @@
       (define (elbow-lib-warning text)
         (display-second-color  (string-append "Warning: " text "\n") (current-error-port)))
 
-      (define (elbow-lib-error-msg text)
-        (display-first-color  (string-append text "\n") (current-error-port)))
 
+      (define (elbow-lib-error-msg text)
+        (display-first-color  
+          (string-append text "\n") (current-error-port)))
+
+      (define (elbow-error msg . obj)
+        (elbow-lib-error-msg msg)
+        (error ""))
 
       (define (elbow-lib-generate-short-text env content len)
         (let* ((body (cadr (assv '*contents-body* content)))

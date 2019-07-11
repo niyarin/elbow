@@ -209,7 +209,22 @@
               (call-with-output-file
                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
-                   (display (elbow-sxml-generate-html template contents-config content) port))))
+                  (if 
+                     (or 
+                       (and
+                          (assq '*contents-use-template* content)
+                          (not (cadr (assq '*contents-use-template* content))))
+                       (and 
+                         (assq '*contents-use-template* contents-config)
+                         (not (cadr (assq '*contents-use-template* contents-config)))))
+                     (display
+                       (elbow-sxml-generate-html 
+                         '(begin *contents-body*)
+                         contents-config
+                         content)
+                       port)
+
+                   (display (elbow-sxml-generate-html template contents-config content) port)))))
             contents-original)
           
           )) 
@@ -222,6 +237,12 @@
          (create-directory* (string-append output-dir "/contents"))
          (create-directory* (string-append output-dir "/contents/contents"))
          )
+
+       (define NO-TEMPLATE-MESSAGE
+         (string-append
+            "ERROR:no template message \n\n"
+            "elbow [command] [options] ... template-directory <template directory name>"
+            ))
 
 
        (define (elbow-full-build-cmd-opt command-line-options)
@@ -242,7 +263,7 @@
                         (error "undefined option " (car options))))))
                   )
               (let ((contents-directory (cond ((assoc "contents-directory" parsed-option) => cadr)(else ".")))
-                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(else (error "error"))))
+                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(else (elbow-error NO-TEMPLATE-MESSAGE))))
                     (output-directory (cond ((assoc "output-directory" parsed-option) => cadr)(else "./build"))))
                   (elbow-full-build contents-directory template-directory output-directory)
               ))))
