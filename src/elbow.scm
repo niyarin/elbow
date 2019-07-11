@@ -13,7 +13,7 @@
 
 (define arg-config
   '(("--help" "-h" (help "Display a help message and exit."))
-    ("command" (nargs 1) (default "none") (help ""))
+    ("command" (nargs 1) (default "none") (help "init|full-build"))
     ("options" (nargs *))))
 
 (define (print-help . port-opt)
