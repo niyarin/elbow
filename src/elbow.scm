@@ -6,6 +6,7 @@
         (scheme write)
         (scheme process-context)
         (niyarin optparse)
+        (elbow lib)
         (elbow init)
         (elbow full build))
 
@@ -33,7 +34,7 @@
          ((string=? command "init") (elbow-init parsed-option))
          ((string=? command "full-build") (elbow-full-build-cmd-opt parsed-option))
          ((string=? command "none") 
-             (display "Elbow error: no command.\n" (current-error-port)) 
+             (elbow-lib-error-msg  "Elbow error: no command.\n") 
              (newline (current-error-port))
              (print-help)
              (exit #f))
