@@ -45,11 +45,19 @@ body{
 }
 
 .main-contents {
-    color:#666666;
+    color:#0b5394;
     background-color:#FFFFFF;
     padding:30px;
     min-height:93%;
 }
+
+.main-contents :visited{
+    color:#0b5394;
+    background-color:#FFFFFF;
+    padding:30px;
+    min-height:93%;
+}
+
 
 .main-contents-title {
     margin-bottom:100px;

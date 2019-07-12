@@ -10,7 +10,7 @@
 
    `(html
       (head 
-        (title ,*site-title)
+        (title ,*site-title*)
         (meta (@ (charaset "utf-8")))
         (link (@ (rel "stylesheet")
                   (type "text/css")
@@ -27,13 +27,12 @@
                          (h4 "#Author")
                          (begin 
                            (if (null? *site-author-page*)
-                              *site-author-name*
+                              *site-author-name* 
                               `(a 
                                  (@ 
                                     (href 
-                                       ,(string-append
-                                          *contents-root-relative-path*
-                                          *site-author-page*)))
+                                      ,,*site-author-page*
+                                       ))
                                  ,*site-author-name*)))
                          (br "")
                          (begin *site-author-explain*))
@@ -85,11 +84,6 @@
                                                  ((assq '*contents-date* content)
                                                   => cadr)
                                                  (else "")))
-                                             (root-relative-path
-                                               (cond
-                                                 ((assq '*contents-root-relative-path* content)
-                                                  => cadr)
-                                                 (else "")))
                                              (sub-directory  
                                                (cond
                                                  ((assq '*contents-sub-directory* content)
@@ -107,7 +101,7 @@
                                           ":"
                                            `(a (@ (href 
                                                     ,(string-append 
-                                                       (cut-tail-slash root-relative-path)
+                                                       *contents-root-relative-path*
                                                        "/contents/"
                                                        (cut-tail-slash sub-directory)
                                                        "/"
