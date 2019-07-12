@@ -95,9 +95,13 @@
            ids-contents 
            (lambda (c1 c2)
              (let ((dl1 
-                     (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c1))))
+                     (if (assv '*contents-date c1)
+                       '(0 0 0 0)
+                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c1)))))
                    (dl2 
-                     (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c2)))))
+                     (if (assv '*contents-date c2)
+                       '(0 0 0 0)
+                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c2))))))
                 (elbow-date-tree-less? dl1 dl2))))
 
          (set! file-names
