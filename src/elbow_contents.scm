@@ -95,24 +95,28 @@
            ids-contents 
            (lambda (c1 c2)
              (let ((dl1 
-                     (if (assv '*contents-date c1)
+                     (if (assv '*contents-date* c1)
+                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c1)))
                        '(0 0 0 0)
-                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c1)))))
+                        ))
                    (dl2 
-                     (if (assv '*contents-date c2)
+                     (if (assv '*contents-date* c2)
+                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c2)))
                        '(0 0 0 0)
-                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c2))))))
+                        )))
                 (elbow-date-tree-less? dl1 dl2))))
 
          (set! file-names
             (make-vector (vector-length ids-contents)))
            
 
+         ;TODO:ここのfile-namesつかわれてる?(quote した)
          (let loop ((i 0))
            (when (< i (vector-length ids-contents))
                (vector-set! ids-contents i (cons (list '*contents-id* i) (vector-ref ids-contents i)))
 
-               (vector-set! file-names i (internal-elbow-contents-generate-name (vector-ref ids-contents i)))
+               ;MEMO:コメントした
+               '(vector-set! file-names i (internal-elbow-contents-generate-name (vector-ref ids-contents i)))
 
                (let ((tags
                        (cond 
