@@ -11,7 +11,7 @@
 
    (begin
       (define elbow-sxml-contents-vars
-        '(*contents-tags-and-links* *contents-date* *contents-title* *contents-prev-page-link* *contents-next-page-link*))
+        '(*contents-tags-and-links* *contents-date* *contents-title* *contents-prev-page-link* *contents-next-page-link* *contents-root-relative-path*))
 
       (define (elbow-sxml-make-default-environment)
         (let ((eval-env (environment '(scheme base) '(scheme cxr) '(scheme write)))
@@ -41,7 +41,7 @@
                (eval 
                  (list 'define (car apair) (list 'quote (cadr apair)))
                  eval-env))
-             env)
+             (reverse env))
 
            (for-each 
              (lambda (apair)

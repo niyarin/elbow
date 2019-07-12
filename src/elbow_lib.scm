@@ -26,7 +26,7 @@
      elbow-lib-generate-short-text 
      elbow-lib-warning 
      elbow-lib-error-msg 
-     elbow-error 
+     elbow-lib-error 
      elbow-lib-remove-tail-slashes )
 
    (begin 
@@ -70,19 +70,32 @@
          )
 
       (define (elbow-lib-warning text)
-        (display-second-color  (string-append "Warning: " text "\n") (current-error-port)))
+        (display-second-color  "Warning: " text "\n") (current-error-port))
 
 
-      (define (elbow-lib-error-msg text)
-        (display-first-color  
-          (string-append text "\n") (current-error-port)))
+      (define (elbow-lib-error-msg obj)
+         (let ((string-port (open-output-string)))
+              (write obj string-port)
+              (display-first-color  (get-output-string string-port) (current-error-port))
+              (close-output-port string-port)))
 
-      (define (elbow-error msg . obj)
+
+      (define (elbow-lib-error msg . obj)
         (elbow-lib-error-msg msg)
         (error ""))
 
       (define (elbow-lib-generate-short-text env content len)
-        (let* ((body (cadr (assv '*contents-body* content)))
-               (body-string (elbow-sxml-generate-html body env content #f)))
-              (substring body-string 0 (min len (string-length body-string)))))
+        (with-exception-handler
+          (lambda (x)
+            (elbow-lib-error-msg x)
+            (elbow-lib-error-msg env)
+            (elbow-lib-error 
+              (string-append
+                "ERROR: generating short text in "
+                (cond ((assv '*contents-title* content) => cadr) (else "???")))))
+
+          (lambda ()
+              (let* ((body (cadr (assv '*contents-body* content)))
+                     (body-string (elbow-sxml-generate-html body env content #f)))
+                    (substring body-string 0 (min len (string-length body-string)))))))
       ))

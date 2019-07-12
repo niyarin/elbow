@@ -271,7 +271,7 @@
                         (error "undefined option " (car options))))))
                   )
               (let ((contents-directory (cond ((assoc "contents-directory" parsed-option) => cadr)(else ".")))
-                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(else (elbow-error NO-TEMPLATE-MESSAGE))))
+                    (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(else (elbow-lib-error NO-TEMPLATE-MESSAGE))))
                     (output-directory (cond ((assoc "output-directory" parsed-option) => cadr)(else "./build"))))
                   (elbow-full-build contents-directory template-directory output-directory)
               ))))
