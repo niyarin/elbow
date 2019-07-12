@@ -39,10 +39,18 @@
 
    (export elbow-full-build elbow-full-build-cmd-opt )
 
-   (begin ;末尾に/がいる
+   (begin 
+
+      (define *DEFAULT-CONTENTS-CONFIG*
+         '((*site-author-page* ());絶対pathのサポートする?
+           ))
+
       (define (elbow-full-build contents-dir template-dir output-dir)
         (let ((contents-config 
-                  (call-with-input-file (string-append contents-dir "/config.elbow") (lambda (port) (read port))))
+                  (append
+                    (call-with-input-file (string-append contents-dir "/config.elbow") 
+                      (lambda (port) (read port)))
+                    *DEFAULT-CONTENTS-CONFIG*))
               (template 
                  (call-with-input-file (string-append template-dir "/template.elbow") (lambda (port) (read port))))
 

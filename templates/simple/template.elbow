@@ -25,7 +25,16 @@
                    (div (@ (class "sidemenu"))
                       (div (@ (class "sidemenu-box"))
                          (h4 "#Author")
-                         (begin *site-author-name*)
+                         (begin 
+                           (if (null? *site-author-page*)
+                              *site-author-name*
+                              `(a 
+                                 (@ 
+                                    (href 
+                                       ,(string-append
+                                          *contents-root-relative-path*
+                                          *site-author-page*)))
+                                 ,*site-author-name*)))
                          (br "")
                          (begin *site-author-explain*))
 
