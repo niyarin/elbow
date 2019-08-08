@@ -14,7 +14,8 @@
    (export elbow-contents-preprocess 
            elbow-contents-add-aux-data-to-content 
            elbow-contents-read-from-file
-           elbow-contnts-create-sub-directory-name)
+           elbow-contnts-create-sub-directory-name
+           elbow-contents-render-contents? )
 
    (begin
 
@@ -47,13 +48,13 @@
          (else "contents")
        ))
 
-     (define (elbow-contents-preprocess contents-list)
-       (define (internal-elbow-contents-render-contents? contents)
-         (not 
-            (cond 
-              ((assv '*contents-draft* contents) => cadr)
-              (else #f))))
+     (define (elbow-contents-render-contents? content)
+        (not 
+          (cond 
+           ((assv '*contents-draft* content) => cadr)
+           (else #f))))
 
+     (define (elbow-contents-preprocess contents-list)
        (define (internal-elbow-contents-generate-name contents)
          (let ((date 
                  (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* contents)))))
@@ -84,7 +85,7 @@
                     (ls contents-list))
            (if (null? ls)
               (set! ids-contents (vector-copy ids-contents 0 index))
-              (if (internal-elbow-contents-render-contents? (car ls))
+              (if (elbow-contents-render-contents? (car ls))
                  (begin 
                     (vector-set! ids-contents index (car ls))
                     (loop (+ index 1) (cdr ls)) )

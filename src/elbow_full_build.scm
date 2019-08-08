@@ -74,7 +74,11 @@
                    ))
               (all-tags (set equal-comparator)))
 
-
+          ;Remove draft contents.
+          (set! contents-original
+            (filter
+              elbow-contents-render-contents? 
+              contents-original) )
 
           ;Add short-text & contents-sub-directory-name.
           (set! contents-original
