@@ -253,7 +253,7 @@
        (define NO-TEMPLATE-MESSAGE
          (string-append
             "ERROR:no template message \n\n"
-            "elbow [command] [options] ... template-directory <template directory name>"
+            "elbow full-build template-directory <template directory name> [options] ..."
             ))
 
 

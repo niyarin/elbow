@@ -32,7 +32,12 @@
          ((assoc "--help" parsed-option string=?) (print-help))
          ((assoc "--version" parsed-option string=?) (print-version))
          ((string=? command "init") (elbow-init parsed-option))
-         ((string=? command "full-build") (elbow-full-build-cmd-opt parsed-option))
+         ((string=? command "full-build") 
+          (with-exception-handler
+            (lambda (ex)
+              (exit #f))
+            (lambda ()
+             (elbow-full-build-cmd-opt parsed-option))))
          ((string=? command "none") 
              (elbow-lib-error-msg  "Elbow error: no command.\n") 
              (newline (current-error-port))

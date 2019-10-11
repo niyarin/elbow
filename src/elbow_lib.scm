@@ -75,7 +75,7 @@
 
       (define (elbow-lib-error-msg obj)
          (let ((string-port (open-output-string)))
-              (write obj string-port)
+              (display obj string-port)
               (display-first-color  (get-output-string string-port) (current-error-port))
               (close-output-port string-port)))
 
