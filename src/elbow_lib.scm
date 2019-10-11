@@ -70,7 +70,7 @@
          )
 
       (define (elbow-lib-warning text)
-        (display-second-color  "Warning: " text "\n") (current-error-port))
+        (display-second-color  (string-append "Warning: " text "\n") (current-error-port)))
 
 
       (define (elbow-lib-error-msg obj)
