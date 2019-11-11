@@ -260,6 +260,7 @@
          (display "full-build-configs")(newline)
          (for-each 
            (lambda (apair)
+             (display "    ")
              (display (car apair))(display " : ")(write (cadr apair))(newline))
            alist))
 
