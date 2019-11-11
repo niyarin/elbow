@@ -256,6 +256,12 @@
             "elbow full-build template-directory <template directory name> [options] ..."
             ))
 
+       (define (%output-full-build-option alist)
+         (display "full-build-configs")(newline)
+         (for-each 
+           (lambda (apair)
+             (display (car apair))(display " : ")(write (cadr apair))(newline))
+           alist))
 
        (define (elbow-full-build-cmd-opt command-line-options)
           (let ((init-options 
@@ -277,6 +283,11 @@
               (let ((contents-directory (cond ((assoc "contents-directory" parsed-option) => cadr)(else ".")))
                     (template-directory (cond ((assoc "template-directory" parsed-option) => cadr)(else (elbow-lib-error NO-TEMPLATE-MESSAGE))))
                     (output-directory (cond ((assoc "output-directory" parsed-option) => cadr)(else "./build"))))
+
+                  (%output-full-build-option 
+                    `((output-directory ,output-directory)
+                      (contents-directory ,contents-directory)
+                      ))
                   (elbow-full-build contents-directory template-directory output-directory)
               ))))
 
