@@ -22,13 +22,13 @@ body{
 }
 
 
-@media only screen and (max-width:767px) {
+@media only screen and (max-width:800px) {
     .sidemenu-wrapper{
         display:none;
     }
 }
 
-@media only screen and (min-width:767px) {
+@media only screen and (min-width:800px) {
     .sidemenu-wrapper{
         width:240px;
         background-color:#555555;
@@ -91,6 +91,10 @@ body{
 
 h1 {
     border-bottom: 2px solid #AAAAAA;
+}
+
+h3 {
+   font-size:18px;
 }
 
 .main pre {
