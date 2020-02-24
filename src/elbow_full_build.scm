@@ -46,7 +46,7 @@
            ))
 
       (define (elbow-full-build contents-dir template-dir output-dir)
-        (let ((contents-config 
+        (let ((contents-config
                   (append
                     (call-with-input-file (string-append contents-dir "/config.elbow") 
                       (lambda (port) (read port)))
@@ -151,9 +151,8 @@
          ;Create output-dir
          (elbow-full-build-create-output-dirs output-dir template-dir contents-dir )
 
-
           (let-values 
-            (((ids-contents tag-contents file-names) (elbow-contents-preprocess contents-original)))
+            (((ids-contents tag-contents) (elbow-contents-preprocess contents-original)))
             
              (set! contents-config
                    (cons

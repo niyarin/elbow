@@ -4,12 +4,14 @@
 
 (define-library (elbow contents)
    (import (scheme base)
-           (srfi 1);scheme list
+           (only (srfi 1) filter);scheme list
            (elbow utils date-tree)
            (elbow lib)
            (elbow misc)
-           (only (srfi 95) sort!)
-           (only (srfi 69) make-hash-table hash-table-ref hash-table-set! hash-table->alist hash-table-exists?)
+           (only (srfi 95) sort! sort)
+           (only (srfi 69) make-hash-table hash-table-ref hash-table-set! hash-table->alist hash-table-exists? alist->hash-table)
+           (only (srfi 113) set set->list);scheme set
+           (only (srfi 114) equal-comparator)
            (scheme read)
            (scheme file)
            (scheme write))
@@ -68,61 +70,60 @@
                     (map (lambda (d) (string-append "_" (number->string d))) date))
              ".html")))
 
-       (let* ((tag-contents (make-hash-table equal?));tag -> id-listのhashtable
-              (render-contents
+       (let* ((render-contents
                 (filter elbow-contents-render-contents? contents-list))
-              (ids-contents (list->vector render-contents))
-              (file-names #f)) ;id - ファイル名
-
-         (define (internal-elbow-contents-push-data! tag id)
-            (when (not (hash-table-exists? tag-contents tag))
-               (hash-table-set! tag-contents tag '()))
-            (hash-table-set! tag-contents tag  (cons id (hash-table-ref tag-contents tag))))
-         ;日付順にsort!
-         (sort!
-           ids-contents
-           (lambda (c1 c2)
-             (let ((dl1
-                     (if (assv '*contents-date* c1)
-                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c1)))
-                       '(0 0 0 0)
-                        ))
-                   (dl2
-                     (if (assv '*contents-date* c2)
-                        (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* c2)))
-                       '(0 0 0 0)
-                        )))
-                (elbow-date-tree-less? dl1 dl2))))
-
-         (set! file-names
-            (make-vector (vector-length ids-contents)))
-
-         ;TODO:ここのfile-namesつかわれてる?(quote した)
-         (let loop ((i 0))
-           (when (< i (vector-length ids-contents))
-               (vector-set! ids-contents i (cons (list '*contents-id* i) (vector-ref ids-contents i)))
-
-               ;MEMO:コメントした
-               '(vector-set! file-names i (internal-elbow-contents-generate-name (vector-ref ids-contents i)))
-
-               (let ((tags
-                       (cond 
-                         ((assv '*contents-tags* 
-                               (vector-ref ids-contents i)) => cadr )
-                         (else '())))
-                     )
-                 (for-each
-                   (lambda (tag)
-                     (internal-elbow-contents-push-data! tag i))
-                   tags)
-               (loop (+ i 1)))))
-
-            (values ids-contents tag-contents file-names)))
+              (formatted-render-contents
+                (map (lambda (content)
+                       (cons (list
+                               '*formatted-contents-date*
+                               (cond ((assv '*contents-date* content)
+                                    => (lambda (key-datestr)
+                                         (elbow-date-tree-decompose-hyphen-date-string (cadr key-datestr))))
+                                      (else '(0 0 0 0))))
+                             content))
+                     render-contents))
+              (sorted-contents
+                  (sort formatted-render-contents
+                        (lambda (x y)
+                         (elbow-date-tree-less?
+                           (cadr (assv '*formatted-contents-date* x))
+                           (cadr (assv '*formatted-contents-date* y))))))
+              (with-id-contents
+                (elbow-misc/map-with-index
+                  (lambda (id content)
+                       (cons (list '*contents-id* id) content))
+                  sorted-contents))
+              (ids-contents (list->vector with-id-contents))
+              (tag-names
+                (set->list
+                   (apply set
+                          equal-comparator
+                          (apply
+                            append
+                             (map (lambda (content)
+                                      (cond ((assv '*contents-tags* content)
+                                             => cadr)
+                                            (else '())))
+                                  with-id-contents)))))
+              (tag-contents
+                (alist->hash-table
+                   (map
+                     (lambda (tag-name)
+                        (cons tag-name
+                              (map (lambda (content) (cadr (assv '*contents-id* content)))
+                                 (filter
+                                   (lambda (content)
+                                     (cond ((assv '*contents-tags* content)
+                                            => (lambda (key-tagnames)
+                                                 (member tag-name (cadr key-tagnames))))
+                                           (else #f)))
+                                   with-id-contents))))
+                     tag-names)
+                   equal?)))
+         (values ids-contents tag-contents)))
 
      (define (elbow-contents-read-from-file filename)
        (call-with-input-file filename
             (lambda (port)
               (let ((elbow-contents (read port)))
-                elbow-contents))))
-     ))
-
+                elbow-contents))))))
