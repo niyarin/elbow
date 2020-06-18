@@ -187,11 +187,9 @@
                template
                (vector->list ids-contents )
                contents-config
-               (append
-                     (list
-                       (list '*contents-title* (string-append "INDEX"))
-                       (list '*contents-sub-directory* "./")
-                       (list '*contents-root-relative-path*  "./"))
+               (cons* (list '*contents-title* (string-append "INDEX"))
+                      (list '*contents-sub-directory* "./")
+                      (list '*contents-root-relative-path*  "./")
                      tag-contents-env)
                output-dir
                10))
