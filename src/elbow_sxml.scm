@@ -11,15 +11,14 @@
 
    (begin
       (define elbow-sxml-contents-vars
-        '(*contents-tags-and-links* *contents-date* *contents-title* *contents-prev-page-link* *contents-next-page-link* *contents-root-relative-path*))
+        '(*contents-tags-and-links* *contents-date* *contents-title* *contents-prev-page-link* *contents-next-page-link* *contents-root-relative-path* *contents-head-tag*))
 
       (define (elbow-sxml-make-default-environment)
         (let ((eval-env (environment '(scheme base) '(scheme cxr) '(scheme write)))
               (convert-env (set 'eq? 'begin)))
 
           (eval '(define *site-title "Title") eval-env)
-
-          (list 
+          (list
             (list 'eval-env eval-env)
             (list 'convert-env convert-env)
             (list 'contains? set-contains? ))))
@@ -29,7 +28,6 @@
                (contains? (cadr (assq 'contains? expand-env)))
                (eval-env (cadr (assq 'eval-env expand-env)))
                (convert-env (cadr (assq 'convert-env expand-env))))
-          
            (for-each
              (lambda (name)
                (eval (list 'define name '()) eval-env))
@@ -38,20 +36,20 @@
            (for-each ;ここは毎回は不要
              (lambda (apair)
                (set-replace! convert-env (car apair))
-               (eval 
+               (eval
                  (list 'define (car apair) (list 'quote (cadr apair)))
                  eval-env))
              (reverse env))
 
-           (for-each 
+           (for-each
              (lambda (apair)
                (set-replace! convert-env (car apair))
-               (eval 
+               (eval
                  (list 'define (car apair) (list 'quote (cadr apair)))
                  eval-env))
              (reverse env-contents));TODO:あとからきたもので上書きされるのでてきとーに対処　跡で治す
 
-          (sxml->xml-string 
+          (sxml->xml-string
                template
                expand-env)))))
 

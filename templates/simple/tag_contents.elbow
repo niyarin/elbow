@@ -18,7 +18,7 @@
                      (list
                        'div
                         `(a (@ (href ,link))
-                            (h5 ,title))
+                            (h3 ,title))
                         `(div
                            ,short-text))))
               *contents-subpages*))

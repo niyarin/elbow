@@ -10,6 +10,9 @@
 
    `(html
       (head 
+        ,@(if (null? *contents-head-tag*)
+            '("")
+            *contents-head-tag*)
         (title ,*site-title*)
         (meta (@ (charaset "utf-8")))
         (link (@ (rel "stylesheet")
