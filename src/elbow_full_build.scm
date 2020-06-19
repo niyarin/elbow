@@ -3,17 +3,20 @@
          "./elbow_contents.scm"
          "./elbow_sxml.scm"
          "./elbow_misc.scm"
-         "./elbow_subcontents.scm")
+         "./elbow_subcontents.scm"
+         "./lib/thread-syntax.scm")
 
 (define-library (elbow full build)
    (cond-expand
      ((library (scheme set))
       (import (scheme base) (scheme read) (scheme write) (scheme file)
-              (scheme set) (only (scheme list) filter take cons*)
+              (scheme set) (only (scheme list) filter take cons* remove concatenate)
+              (scheme cxr)
               (srfi 114)
               (srfi 69)
               (elbow contents) (elbow lib) (elbow markup) (elbow subcontents) (elbow sxml)
               (elbow misc)
+              (only (niyarin thread-syntax) ->> ->)
               (niyarin non-portable-utils directory-library-wrapper)))
      ((library (srfi 113))
          (import (scheme base)
@@ -38,111 +41,115 @@
          '((*site-author-page* ());絶対pathのサポートする?
            ))
 
+      (define (%only-file-name fpath)
+        (let-values (((d name extension) (decompose-path fpath)))
+            name))
+
+      (define (%read-files-without-dotted contents-dir)
+         (let-values (((dir files)
+                        (directory-list2-add-path
+                           (string-append contents-dir "/contents"))))
+             (->> files
+                  ;;decompose
+                  (map (lambda (fpath)
+                         (let* ((fname-without-extension
+                                  (%only-file-name fpath))
+                                (output-fname
+                                  (string-append fname-without-extension
+                                                 ".html")))
+                           (list fpath fname-without-extension output-fname))))
+                  ;;remove dot files
+                  (remove (lambda (fpath-iname-oname)
+                              (elbow-misc/dot-file-name?
+                                (cadr fpath-iname-oname))))
+                  ;;read files
+                  (map (lambda (fpath-iname-oname)
+                         (call-with-input-file
+                            (car fpath-iname-oname)
+                            (lambda (port)
+                                 (cons `(*contents-file-name*
+                                          ,(caddr fpath-iname-oname))
+                                       (read port)))))))))
+
       (define (elbow-full-build contents-dir template-dir output-dir)
-        (let ((contents-config
-                  (append
-                    (call-with-input-file (string-append contents-dir "/config.elbow")
-                      (lambda (port) (read port)))
-                    *DEFAULT-CONTENTS-CONFIG*))
-              (template
-                 (call-with-input-file (string-append template-dir "/template.elbow") (lambda (port) (read port))))
-              (tag-contents-env ;TODO:template直下にあるという前提(あとで、設定で変更できるようにする
-                  (call-with-input-file (string-append template-dir "/tag_contents.elbow") (lambda (port) (read port))))
-              (contents-original
-                (let-values (((dir files) (directory-list2-add-path (string-append contents-dir "/contents"))))
-                   (map
-                     (lambda (fname)
-                       (call-with-input-file
-                         fname
-                         (lambda (port)
-                           (cons
-                             (list
-                               '*contents-file-name*
-                               (let-values (((_ name extension) (decompose-path fname)))
-                                           (string-append name "." "html")))
-                             (read port)))))
-                     (filter (lambda (fpath) (let-values (((_ fname __) (decompose-path fpath)))(not (char=? (string-ref fname 0) #\.)))) files))))
-              (all-tags (set equal-comparator)))
+        (let* ((template
+                  (call-with-input-file
+                    (string-append template-dir "/template.elbow")
+                    (lambda (port) (read port))))
+               (tag-contents-env ;TODO:template直下にあるという前提(あとで、設定で変更できるようにする
+                   (call-with-input-file (string-append template-dir
+                                                        "/tag_contents.elbow")
+                                         (lambda (port) (read port))))
 
-          ;Remove draft contents.
-          (set! contents-original
-            (filter
-              elbow-contents-render-contents?
-              contents-original))
+               (contents-original
+                 (->> (%read-files-without-dotted contents-dir)
+                      ;remove draft contents
+                      (filter elbow-contents-render-contents?)))
+               (all-tag-names
+                 (->> contents-original
+                      (map (lambda (content)
+                             (cadr (assq '*contents-tags* content))))
+                      concatenate
+                      (list->set equal-comparator)))
+               (tag-root-name-alist
+                 (->> (set->list all-tag-names)
+                      (map (lambda (tag-name)
+                             (list tag-name
+                                   (string-append
+                                     "/tags/"
+                                     tag-name
+                                     ".html"))))))
+               (base-contents-fonfig
+                 (->> *DEFAULT-CONTENTS-CONFIG*
+                      (append (call-with-input-file
+                                (string-append contents-dir "/config.elbow")
+                                (lambda (port) (read port))))))
+               (major-tags
+                 (->> (or (assq '*site-selected-tags* base-contents-fonfig)
+                           (list 'dummy
+                                 (take (set->list all-tag-names)
+                                       (min 5 (set-size all-tag-names)))))
+                      cadr))
+               (contents-config
+                 (->> base-contents-fonfig
+                     (cons* `(*site-selected-tags* ,major-tags)
+                            `(*site-selected-tags-and-links*
+                               ,(->> major-tags
+                                     (map (lambda (tag)
+                                            (list tag
+                                                  (cadr (assoc tag tag-root-name-alist)))))))))))
 
-          ;Add short-text & contents-sub-directory-name.
+         (begin
+            ;Create output-dir
+            (elbow-misc/print-info "Make output-directories.")
+            (elbow-full-build-create-output-dirs output-dir template-dir contents-dir))
+
           (set! contents-original
-                (map
-                  (lambda (content)
-                    (let ((contents-relative-root-path "../.."))
-                       (cons*
-                         (list '*contents-short-text*
-                               (elbow-lib-generate-short-text `() content 100))
-                         (list '*contents-sub-directory*  (elbow-contnts-create-sub-directory-name content))
-                         (list '*contents-root-relative-path* contents-relative-root-path)
-                         (list '*contents-tags-and-links*
-                                 (map (lambda (tag)
-                                           (list
-                                             tag
-                                             (string-append
-                                               (elbow-lib-remove-tail-slashes
-                                                 contents-relative-root-path)
-                                               "/tags/" tag ".html")))
+            (->> contents-original
+                 ;Add short-text & contents-sub-directory-name.
+                 (map (lambda (content)
+                        (let ((contents-relative-root-path "../.."))
+                          `((*contents-short-text* ,(elbow-lib-generate-short-text '() content 100))
+                            (*contents-sub-directory* ,(elbow-contnts-create-sub-directory-name content))
+                            (*contents-root-relative-path* ,contents-relative-root-path)
+                            (*contents-tags-and-links*
+                                 ,(map (lambda (tag-name)
+                                           (->> (assoc tag-name tag-root-name-alist string=?)
+                                                cadr
+                                                (string-append contents-relative-root-path)
+                                                (list tag-name)))
                                        (cadr (assq '*contents-tags* content))))
-                         content)))
-                  contents-original))
-         ;Generate tag list.
-         (for-each
-           (lambda (content)
-             (apply
-               set-adjoin!
-               (cons all-tags (cadr (assq '*contents-tags* content)))))
-           contents-original)
+                            .
+                            ,content))))))
 
-         (unless (assq '*site-selected-tags* contents-config)
-            (set! contents-config
-               (cons
-                 (list '*site-selected-tags
-                       (let loop ((i 0) (tags (set->list all-tags)) (res '()))
-                         (cond
-                           ((null? tags) res)
-                           ((= i 5) res);この定数あとでconfigにいれる。
-                           (else
-                             (loop (+ i 1) (cdr tags) (cons (car tags) res))))))
-                 contents-config))
 
-             (set! contents-config
-               (cons
-                 (list '*site-selected-tags-and-links* 
-                       (let loop ((i 0) (tags (set->list all-tags)) (res '())) 
-                         (cond 
-                           ((null? tags) res)
-                           ((= i 5) res);この定数あとでconfigにいれる。
-                           (else 
-                             (loop 
-                               (+ i 1) 
-                               (cdr tags) 
-                               (cons 
-                                 (list (car tags)  
-                                       (string-append
-                                          (elbow-subcontents-tag-file-base-name 
-                                            (append (list 
-                                                      (list '*contents-tag-name* (car tags)) 
-                                                      (list '*contents-root-relative-path*  "/"))
-                                                    tag-contents-env))
-                                       ".html"))
-                                 res))))))
-                 contents-config)))
 
-         ;Create output-dir
-         (elbow-full-build-create-output-dirs output-dir template-dir contents-dir )
-
-          (let-values 
-            (((ids-contents tag-contents) (elbow-contents-preprocess contents-original)))
-            
+          (let-values
+            (((ids-contents tag-contents)
+                (elbow-contents-preprocess contents-original)))
              (set! contents-config
                    (cons
-                     (list 
+                     (list
                        '*site-recent-entries*
                        (let ((end-index (max 0 (- (vector-length ids-contents) 5))))
                          (let loop ((i (- (vector-length ids-contents) 1))(res '()))
@@ -151,35 +158,24 @@
                                (loop (- i 1) (cons (vector-ref ids-contents i) res))))))
                      contents-config))
              ;Create tag parges
-             (let ((tag-pages
-                     (map 
-                       (lambda (tag)
-                           (cons 
-                             tag
+             (->> (set->list all-tag-names)
+                  (for-each
+                    (lambda (tag-name)
+                      (let ((sub-contents
                               (map (lambda (index) (vector-ref ids-contents index))
-                                   (hash-table-ref tag-contents tag )) ))
-                       (set->list all-tags))))
-
-               (for-each 
-                 (lambda (tag-contents-pair)
-                    (let ((tag (car tag-contents-pair))
-                          (sub-contents (cdr tag-contents-pair)))
-                      (elbow-subcontents-create-sub-contents
-                        elbow-subcontents-tag-file-base-name
-                        template
-                        sub-contents
-                        contents-config
-                        (append
-                              (list
-                                (list '*contents-title* (string-append "TAGS:" tag))
-                                (list '*contents-tag-name* tag)
-                                (list '*contents-sub-directory* "tags")
-                                (list '*contents-root-relative-path*  ".."))
-                              tag-contents-env)
-                        output-dir
-                        5)
-                      ))
-                 tag-pages))
+                                   (hash-table-ref tag-contents tag-name))))
+                         (elbow-subcontents-create-sub-contents
+                           elbow-subcontents-tag-file-base-name
+                           template
+                           sub-contents
+                           contents-config
+                           (cons* (list '*contents-title* (string-append "TAGS:" tag-name))
+                                  (list '*contents-tag-name* tag-name)
+                                  (list '*contents-sub-directory* "tags")
+                                  (list '*contents-root-relative-path*  "..")
+                                  tag-contents-env)
+                           output-dir
+                           6)))))
 
             ;Create index
             (elbow-subcontents-create-sub-contents
@@ -279,7 +275,4 @@
                                      "./build")))
              (begin
                (unless template-directory (elbow-lib-error NO-TEMPLATE-MESSAGE))
-               (%output-full-build-option
-                  `((output-directory ,output-directory)
-                    (contents-directory ,contents-directory)))
                (elbow-full-build contents-directory template-directory output-directory)))))))
