@@ -1,6 +1,7 @@
 (include "./elbow_utils/elbow_date_tree.scm")
 (include "./elbow_lib.scm")
 (include "./elbow_misc.scm")
+(include "./lib/thread-syntax.scm")
 
 (define-library (elbow contents)
    (import (scheme base)
@@ -12,6 +13,7 @@
            (only (srfi 69) make-hash-table hash-table-ref hash-table-set! hash-table->alist hash-table-exists? alist->hash-table)
            (only (srfi 113) set set->list);scheme set
            (only (srfi 114) equal-comparator)
+           (only (niyarin thread-syntax) ->> ->)
            (scheme read)
            (scheme file)
            (scheme write))
@@ -104,22 +106,19 @@
                                       (cond ((assv '*contents-tags* content)
                                              => cadr)
                                             (else '())))
-                                  with-id-contents)))))
+                                  (reverse with-id-contents))))))
               (tag-contents
                 (alist->hash-table
-                   (map
-                     (lambda (tag-name)
-                        (cons tag-name
-                              (map (lambda (content) (cadr (assv '*contents-id* content)))
-                                 (filter
-                                   (lambda (content)
-                                     (cond ((assv '*contents-tags* content)
-                                            => (lambda (key-tagnames)
-                                                 (member tag-name (cadr key-tagnames))))
-                                           (else #f)))
-                                   with-id-contents))))
-                     tag-names)
-                   equal?)))
+                  (->> tag-names
+                       (map (lambda (tag-name)
+                               (cons tag-name
+                                     (->> (reverse with-id-contents)
+                                          (filter (lambda (content)
+                                                    (cond ((assq '*contents-tags* content)
+                                                           => (lambda (key-tagnames)
+                                                                (member tag-name (cadr key-tagnames))))
+                                                          (else #f))))
+                                          (map (lambda (content) (cadr (assq '*contents-id* content))))))))))))
          (values ids-contents tag-contents)))
 
      (define (elbow-contents-read-from-file filename)

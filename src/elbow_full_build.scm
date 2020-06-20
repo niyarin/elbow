@@ -149,14 +149,12 @@
                 (elbow-contents-preprocess contents-original)))
              (set! contents-config
                    (cons
-                     (list
-                       '*site-recent-entries*
-                       (let ((end-index (max 0 (- (vector-length ids-contents) 5))))
-                         (let loop ((i (- (vector-length ids-contents) 1))(res '()))
-                           (if (< i end-index)
-                               res
-                               (loop (- i 1) (cons (vector-ref ids-contents i) res))))))
+                     (list '*site-recent-entries*
+                           (-> (vector->list ids-contents)
+                                reverse
+                                (take (min (vector-length ids-contents) 5))))
                      contents-config))
+
              ;Create tag parges
              (->> (set->list all-tag-names)
                   (for-each
@@ -181,9 +179,9 @@
             (elbow-subcontents-create-sub-contents
                (lambda (_) "index")
                template
-               (vector->list ids-contents )
+               (reverse (vector->list ids-contents))
                contents-config
-               (cons* (list '*contents-title* (string-append "INDEX"))
+               (cons* (list '*contents-title* (string-append "Index"))
                       (list '*contents-sub-directory* "./")
                       (list '*contents-root-relative-path*  "./")
                      tag-contents-env)
