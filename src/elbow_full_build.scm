@@ -5,6 +5,9 @@
          "./elbow_misc.scm"
          "./elbow_subcontents.scm"
          "./lib/thread-syntax.scm")
+(include "./elbow/path.scm")
+(include "./elbow/contents-middleware.scm")
+
 
 (define-library (elbow full build)
    (cond-expand
@@ -17,6 +20,7 @@
               (elbow contents) (elbow lib) (elbow markup) (elbow subcontents) (elbow sxml)
               (elbow misc)
               (only (niyarin thread-syntax) ->> ->)
+              (prefix (elbow contents-middleware) emware/)
               (niyarin non-portable-utils directory-library-wrapper)))
      ((library (srfi 113))
          (import (scheme base)
@@ -32,6 +36,7 @@
               (elbow markup)
               (elbow subcontents)
               (elbow sxml)
+              (prefix (elbow contents-middleware) emware/)
               (niyarin non-portable-utils directory-library-wrapper))))
 
    (export elbow-full-build elbow-fuill-build/build-cmd-opt)
@@ -45,31 +50,23 @@
         (let-values (((d name extension) (decompose-path fpath)))
             name))
 
+     (define (%make-filenames contents-dir)
+       (let-values (((dir files)
+                   (directory-list2-add-path
+                      (string-append contents-dir))))
+          (map (lambda (filename)
+               `((*contents-filepath* ,filename)))
+               files)))
+
+
       (define (%read-files-without-dotted contents-dir)
-         (let-values (((dir files)
-                        (directory-list2-add-path
-                           (string-append contents-dir "/contents"))))
-             (->> files
-                  ;;decompose
-                  (map (lambda (fpath)
-                         (let* ((fname-without-extension
-                                  (%only-file-name fpath))
-                                (output-fname
-                                  (string-append fname-without-extension
-                                                 ".html")))
-                           (list fpath fname-without-extension output-fname))))
-                  ;;remove dot files
-                  (remove (lambda (fpath-iname-oname)
-                              (elbow-misc/dot-file-name?
-                                (cadr fpath-iname-oname))))
-                  ;;read files
-                  (map (lambda (fpath-iname-oname)
-                         (call-with-input-file
-                            (car fpath-iname-oname)
-                            (lambda (port)
-                                 (cons `(*contents-file-name*
-                                          ,(caddr fpath-iname-oname))
-                                       (read port)))))))))
+          (emware/elbow-pipeline>
+            (emware/add-filename-key-middleware
+                 (%make-filenames contents-dir) '())
+             emware/remove-dotted-file-middleware
+             emware/filter-elbow-file-middleware
+             emware/read-file-middleware
+             (lambda (x y) x)))
 
       (define (elbow-full-build contents-dir template-dir output-dir)
         (let* ((template
@@ -88,9 +85,15 @@
                (all-tag-names
                  (->> contents-original
                       (map (lambda (content)
-                             (cadr (assq '*contents-tags* content))))
+                             (cond ((assq '*contents-tags* content) => cadr)
+                                   (else
+                                    (display "Warning:: content have no *contents-tags*:" (current-error-port))
+                                    (display content (current-error-port))
+                                    (newline (current-error-port))
+                                     '()))))
                       concatenate
                       (list->set equal-comparator)))
+
                (tag-root-name-alist
                  (->> (set->list all-tag-names)
                       (map (lambda (tag-name)
@@ -99,6 +102,7 @@
                                      "/tags/"
                                      tag-name
                                      ".html"))))))
+
                (base-contents-fonfig
                  (->> *DEFAULT-CONTENTS-CONFIG*
                       (append (call-with-input-file
@@ -197,22 +201,24 @@
               (call-with-output-file
                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
                 (lambda (port)
-                  (if
-                     (or
-                       (and
-                          (assq '*contents-use-template* content)
-                          (not (cadr (assq '*contents-use-template* content))))
-                       (and
-                         (assq '*contents-use-template* contents-config)
-                         (not (cadr (assq '*contents-use-template* contents-config)))))
+                  (let ((sxml-scm-code
+                          (cond ((or (and (assq '*contents-use-template* content)
+                                         (not (cadr (assq '*contents-use-template*
+                                                content))))
+                                     (and (assq '*contents-use-template* contents-config)
+                                          (not (cadr (assq '*contents-use-template*
+                                               contents-config)))))
+                                 '(begin *contents-body*))
+                                ((equal? (assq '*contents-format* content)
+                                         '('*contents-format* markdown))
+                                 (begin (display "MARK DOWN!")(newline)'()))
+                                (else template))))
                      (display
                        (elbow-sxml-generate-html
-                         '(begin *contents-body*)
+                         sxml-scm-code
                          contents-config
                          content)
-                       port)
-
-                   (display (elbow-sxml-generate-html template contents-config content) port)))))
+                       port)))))
             contents-original)))
 
        (define (elbow-full-build-create-output-dirs output-dir  template-dir contents-dir)

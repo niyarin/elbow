@@ -24,7 +24,12 @@
 
 (define (%error-wrapper thunk)
   (with-exception-handler
-    (lambda (ex) (display ex) (newline) (exit #f))
+    (lambda (ex)
+      (display (error-object-message ex))
+      (newline)
+      (display (error-object-irritants ex))
+      (newline)
+      (exit #f))
     thunk))
 
 (define (elbow-main)
@@ -36,7 +41,7 @@
          ((string=? command "init") (elbow-init parsed-option))
          ((string=? command "full-build")
           (elbow-misc/print-info "Run full-build...")
-          (%error-wrapper (lambda () (elbow-fuill-build/build-cmd-opt parsed-option))))
+          ((lambda () (elbow-fuill-build/build-cmd-opt parsed-option))))
          ((string=? command "none")
              (elbow-lib-error-msg  "Elbow error: no command.\n")
              (newline (current-error-port))
