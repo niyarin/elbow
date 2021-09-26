@@ -64,9 +64,15 @@
             (emware/add-filename-key-middleware
                  (%make-filenames contents-dir) '())
              emware/remove-dotted-file-middleware
+             emware/add-output-name-middleware
              emware/filter-elbow-file-middleware
              emware/read-file-middleware
-             (lambda (x y) x)))
+             emware/remove-draft-middleware
+             emware/add-tags-info-to-global-env-middleware
+             emware/calc-major-tags-middleware
+             emware/add-parsed-date-info-to-contents-middleware
+             emware/add-ids-to-contents-middleware
+             cons))
 
       (define (elbow-full-build contents-dir template-dir output-dir)
         (let* ((template
@@ -78,21 +84,18 @@
                                                         "/tag_contents.elbow")
                                          (lambda (port) (read port))))
 
-               (contents-original
-                 (->> (%read-files-without-dotted contents-dir)
-                      ;remove draft contents
-                      (filter elbow-contents-render-contents?)))
-               (all-tag-names
-                 (->> contents-original
-                      (map (lambda (content)
-                             (cond ((assq '*contents-tags* content) => cadr)
-                                   (else
-                                    (display "Warning:: content have no *contents-tags*:" (current-error-port))
-                                    (display content (current-error-port))
-                                    (newline (current-error-port))
-                                     '()))))
-                      concatenate
-                      (list->set equal-comparator)))
+              (base-contents-fonfig
+                 (->> *DEFAULT-CONTENTS-CONFIG*
+                      (append (call-with-input-file
+                                (string-append contents-dir "/config.elbow")
+                                (lambda (port) (read port))))))
+               (contents-original/env
+                 (%read-files-without-dotted
+                   (string-append contents-dir "/contents/")))
+
+               (contents-original (car contents-original/env))
+               (all-tag-names (cadr (assq '*tag-names* (cdr contents-original/env))))
+               (major-tags (cadr (assq '*major-tags* (cdr contents-original/env))))
 
                (tag-root-name-alist
                  (->> (set->list all-tag-names)
@@ -103,17 +106,6 @@
                                      tag-name
                                      ".html"))))))
 
-               (base-contents-fonfig
-                 (->> *DEFAULT-CONTENTS-CONFIG*
-                      (append (call-with-input-file
-                                (string-append contents-dir "/config.elbow")
-                                (lambda (port) (read port))))))
-               (major-tags
-                 (->> (or (assq '*site-selected-tags* base-contents-fonfig)
-                           (list 'dummy
-                                 (take (set->list all-tag-names)
-                                       (min 5 (set-size all-tag-names)))))
-                      cadr))
                (contents-config
                  (->> base-contents-fonfig
                      (cons* `(*site-selected-tags* ,major-tags)
@@ -122,7 +114,6 @@
                                      (map (lambda (tag)
                                             (list tag
                                                   (cadr (assoc tag tag-root-name-alist)))))))))))
-
          (begin
             ;Create output-dir
             (elbow-misc/print-info "Make output-directories.")
@@ -199,7 +190,10 @@
                  (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content))));TODO:明らかに悪そう。あとで修正する
 
               (call-with-output-file
-                (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content)) "/" (cadr (assq '*contents-file-name* content)))
+                (string-append output-dir "/contents/"
+                               (cadr (assq '*contents-sub-directory* content)) "/"
+                               (cond ((assq '*contents-output-filename* content) => cadr)
+                                     (else (cadr (assq '*contents-output-filename* content)))))
                 (lambda (port)
                   (let ((sxml-scm-code
                           (cond ((or (and (assq '*contents-use-template* content)

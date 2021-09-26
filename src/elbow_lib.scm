@@ -78,6 +78,32 @@
         (elbow-lib-error-msg msg)
         (error ""))
 
+      (define (elbow-lib/remove-tag html-string . max-length-opt)
+        (let ((max-length
+                (if (null? max-length-opt) -1 (car max-length-opt))))
+          (let loop ((i 0)
+                     (len 0)
+                     (res "")
+                     (open #t))
+            (cond
+              ((= len max-length) res)
+              ((= i (string-length html-string)) res)
+              ((char=? (string-ref html-string i) #\<)
+               (loop (+ i 1) len res #t))
+              ((and open
+                    (char=? (string-ref html-string i) #\>))
+               (loop (+ i 1) len res #f))
+              ((char=? (string-ref html-string i) #\>)
+               (loop (+ i 1) (+ len 1) (string-append res "&lt;") #f))
+              (open
+                (loop (+ i 1) (+ len 1) res #t))
+              (else
+                (loop (+ i 1)
+                      (+ len 1)
+                      (string-append res
+                                     (string (string-ref html-string i)))
+                      #f))))))
+
       (define (elbow-lib-generate-short-text env content len)
         (with-exception-handler
           (lambda (error-object)
@@ -91,6 +117,4 @@
           (lambda ()
               (let* ((body (cadr (assq '*contents-body* content)))
                      (body-string (elbow-sxml-generate-html body env content #f)))
-                 (substring body-string
-                            0
-                            (min len (string-length body-string)))))))))
+                     (elbow-lib/remove-tag body-string len)))))))

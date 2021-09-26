@@ -20,9 +20,7 @@
 
    (export elbow-contents-preprocess
            elbow-contents-add-aux-data-to-content
-           elbow-contents-read-from-file
-           elbow-contnts-create-sub-directory-name
-           elbow-contents-render-contents? )
+           elbow-contnts-create-sub-directory-name)
 
    (begin
 
@@ -84,17 +82,7 @@
                                       (else '(0 0 0 0))))
                              content))
                      render-contents))
-              (sorted-contents
-                  (sort formatted-render-contents
-                        (lambda (x y)
-                         (elbow-date-tree-less?
-                           (cadr (assv '*formatted-contents-date* x))
-                           (cadr (assv '*formatted-contents-date* y))))))
-              (with-id-contents
-                (elbow-misc/map-with-index
-                  (lambda (id content)
-                       (cons (list '*contents-id* id) content))
-                  sorted-contents))
+              (with-id-contents formatted-render-contents)
               (ids-contents (list->vector with-id-contents))
               (tag-names
                 (set->list
@@ -120,9 +108,4 @@
                                                           (else #f))))
                                           (map (lambda (content) (cadr (assq '*contents-id* content))))))))))))
          (values ids-contents tag-contents)))
-
-     (define (elbow-contents-read-from-file filename)
-       (call-with-input-file filename
-            (lambda (port)
-              (let ((elbow-contents (read port)))
-                elbow-contents))))))
+     ))

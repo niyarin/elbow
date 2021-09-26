@@ -1,6 +1,6 @@
 (define-library (niyarin sxml)
-   (import 
-     (scheme base) 
+   (import
+     (scheme base)
      ;(scheme list)
      (scheme write);FOR DEBUG
      (srfi 1)
@@ -10,7 +10,6 @@
    (export sxml->xml-string)
 
    (begin
-      
      (define (%attribute-list? sxml)
        (and 
          (list? sxml)
@@ -31,7 +30,6 @@
           (list? sxml)
           (list? (cdr sxml))
           (symbol? (car sxml))))
-          
 
      (define (sxml->xml-string sxml . opt)
        (let* ((env (if (null? opt) '() (car opt)))
