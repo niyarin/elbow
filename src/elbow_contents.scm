@@ -95,17 +95,20 @@
                                              => cadr)
                                             (else '())))
                                   (reverse with-id-contents))))))
-              (tag-contents
+              (content-has-tag?-fn (lambda (tag-name)
+                                     (lambda (content)
+                                      (cond ((assq '*contents-tags* content)
+                                             => (lambda (key-tagnames)
+                                                  (member tag-name (cadr key-tagnames))))
+                                            (else #f)))))
+              (tag-contents ;;make ((tag-name (contents-ids ... )) ... )
                 (alist->hash-table
                   (->> tag-names
                        (map (lambda (tag-name)
                                (cons tag-name
                                      (->> (reverse with-id-contents)
-                                          (filter (lambda (content)
-                                                    (cond ((assq '*contents-tags* content)
-                                                           => (lambda (key-tagnames)
-                                                                (member tag-name (cadr key-tagnames))))
-                                                          (else #f))))
-                                          (map (lambda (content) (cadr (assq '*contents-id* content))))))))))))
+                                          (filter (content-has-tag?-fn tag-name))
+                                          (map (lambda (content) (cadr (assq '*contents-id* content)))))))))
+                  equal-comparator)))
          (values ids-contents tag-contents)))
      ))
