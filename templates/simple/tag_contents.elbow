@@ -15,11 +15,11 @@
                            (caddr title-short-text-thumbnail-link))
                          (link
                            (cadddr title-short-text-thumbnail-link)))
-                     (list
-                       'div
-                        `(a (@ (href ,link))
+                     `(div
+                        (@ (class "contents-pair"))
+                        (a (@ (href ,link))
                             (h3 ,title))
-                        `(div
+                        (div
                            ,short-text))))
               *contents-subpages*))
             (list

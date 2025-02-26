@@ -8,54 +8,78 @@
            (- (string-length x) 1)))
        x))
 
-   `(html
-      (head 
+   `(html (@ (lang "ja"))
+      (head
         ,@(if (null? *contents-head-tag*)
             '("")
             *contents-head-tag*)
         (title ,*site-title*)
-        (meta (@ (charaset "utf-8")))
+        (meta (@ (charset "utf-8")))
         (link (@ (rel "stylesheet")
                   (type "text/css")
-                  (href 
-                  ,(string-append 
+                  (href
+                  ,(string-append
                   *contents-root-relative-path*
-                  "/resources/style.css"
-                  )))))
+                  "/resources/style.css"))))
+        (script
+          "
+            var state = 0;
+            function hamburger_click(){
+               var sidemenu = document.getElementById(\"sidemenu\");
+               if (state == 0){
+                  sidemenu.style.display = \"block\";
+                  var hamburger = document.getElementById(\"hamburger\");
+                  hamburger.style[\"color\"] = \"#FF9900\";
+                  state = 1;
+               }else {
+                  sidemenu.style.display = \"none\";
+                  var hamburger = document.getElementById(\"hamburger\");
+                  hamburger.style[\"color\"] = \"#000000\";
+                  state = 0;
+               }
+            }
+
+            function main_click(){
+               if (state == 1){
+                  var sidemenu = document.getElementById(\"sidemenu\");
+                  sidemenu.style.display = \"none\";
+                  hamburger.style[\"color\"] = \"#000000\";
+                  state = 0;
+               }
+            }
+          ")
+        )
         (body
             (div (@ (class "page-wrapper"))
-                (div (@ (class "sidemenu-wrapper"))
+                (div (@ (class "sidemenu-wrapper")
+                        (id "sidemenu"))
                    (div (@ (class "sidemenu"))
                       (div (@ (class "sidemenu-box"))
                          (h4 "#Author")
-                         (begin 
+                         (begin
                            (if (null? *site-author-page*)
-                              *site-author-name* 
-                              `(a 
-                                 (@ 
-                                    (href 
-                                      ,,*site-author-page*
-                                       ))
+                              *site-author-name*
+                              `(a (@ (href ,,*site-author-page*))
                                  ,*site-author-name*)))
                          (br "")
                          (begin *site-author-explain*))
 
                       (div (@ (class "sidemenu-box"))
                          (span (@ (class "tag"))
-                               (h4 "#TAG")
+                               (h4 "#Tags")
                                (begin
                                  (if (null?  *site-selected-tags-and-links*)
                                   '()
-                                  (cons 
+                                  (cons
                                     'div
-                                     (map 
+                                     (map
                                        (lambda (tag-link)
                                          (let ((tag (car tag-link))
                                                (link (cadr tag-link)))
                                            (list
                                              'div
-                                             `(a (@ (href 
-                                                      ,(string-append 
+                                             `(a (@ (href
+                                                      ,(string-append
                                                          (cut-tail-slash *contents-root-relative-path* )
                                                          link)))
                                                  (span (@ (class "tagbox"))
@@ -73,8 +97,8 @@
                                  'div
                                   (map
                                     (lambda (content)
-                                      (let* ((tmp-title 
-                                              (cond 
+                                      (let* ((tmp-title
+                                              (cond
                                                 ((assq '*contents-title* content)
                                                  => cadr)
                                                 (else "")))
@@ -87,7 +111,7 @@
                                                  ((assq '*contents-date* content)
                                                   => cadr)
                                                  (else "")))
-                                             (sub-directory  
+                                             (sub-directory
                                                (cond
                                                  ((assq '*contents-sub-directory* content)
                                                   => cadr)
@@ -97,14 +121,14 @@
                                                  ((assq '*contents-file-name* content)
                                                   => cadr)
                                                  (else ""))))
-                                                   
                                         (list
                                           'div
+                                          '(@ (style "margin-bottom:10px;border-bottom:1px solid #EEEEEE;"))
                                           date
                                           ":"
-                                           `(a (@ (href 
-                                                    ,(string-append 
-                                                       *contents-root-relative-path*
+                                           `(a (@ (href
+                                                    ,(string-append
+                                                       (cut-tail-slash *contents-root-relative-path*)
                                                        "/contents/"
                                                        (cut-tail-slash sub-directory)
                                                        "/"
@@ -113,31 +137,48 @@
                                                ,title))))
                                     *site-recent-entries*)))))))
 
-                (div (@ (class "main"))
-                   (div (@ (class "main-contents"))
-                       (header (@ (class "main-contents-title"))
-                           (begin
-                           `(a (@ (href ,(string-append 
-                                           (cut-tail-slash
-                                             *contents-root-relative-path*)
-                                           "/index.html")))
-                               ,*site-title*)))
-                       (begin
-                       `(div (@ (class "inner-contents"))
-                           (h1 ,*contents-title*)
-                           ,(if (null?  *contents-tags-and-links*)
-                             '()
-                             (cons 
-                               'div
-                                (map
-                                  (lambda (tag-link)
-                                    `(a (@ (href ,(cadr tag-link)))
-                                        (span (@ (class "tagbox"))
-                                              ,(car tag-link))))
-                                  *contents-tags-and-links*)))
-                           (div (@ (class "time-box"))
-                              ,(if (null? *contents-date*)
-                                 '()
-                                 *contents-date*))
-                           ,*contents-body*
-                           ))))))))
+                (div (@ (class "main-wrapper"))
+                   (div (@ (class "head-menu"))
+                          (a (@ (class "hamburger-button")
+                                (id "hamburger")
+                                (onclick "hamburger_click()"))
+                             "≡"
+                             )
+                          (span (@ (class "sub-main-contents-title"))
+                                    (a (@ (href ,(string-append
+                                                    (cut-tail-slash
+                                                      *contents-root-relative-path*)
+                                                    "/index.html")))
+                                        ,*site-title*)))
+                   (div (@ (class "main")
+                           (onclick "main_click()"))
+                      (div (@ (class "main-contents"))
+                          (header (@ (class "main-contents-title"))
+                              (begin
+                              `(a (@ (href ,(string-append
+                                              (cut-tail-slash
+                                                *contents-root-relative-path*)
+                                              "/index.html")))
+                                  ,*site-title*)))
+                          (begin
+                          `(div (@ (class "inner-contents"))
+                              (h1 ,*contents-title*)
+                              ,(if (null?  *contents-tags-and-links*)
+                                '()
+                                (cons
+                                  'span
+                                  (cons
+                                      "Tags:"
+                                      (map
+                                        (lambda (tag-link)
+                                          `(a (@ (href ,(cadr tag-link)))
+                                              (span (@ (class "tagbox"))
+                                                    ,(car tag-link))))
+                                        *contents-tags-and-links*))))
+                              (div (@ (class "time-box"))
+                                 ,(if (null? *contents-date*)
+                                    '()
+                                    *contents-date*))
+                              (br)
+                              (br)
+                              ,*contents-body*)))))))))

@@ -2,11 +2,13 @@ html{
     min-height:100%;
     height:100%;
 }
+
 body{
     display: flex;
     min-height:100%;
     margin:0;
     padding:0;
+    background-color:#555555;
 }
 
 .page-wrapper {
@@ -15,24 +17,74 @@ body{
     width:100%;
 }
 
+.main-wrapper {
+    flex:1;
+}
+
 .main{
     background-color:#555555;
-    flex:1;
     padding:30px;
+    min-height:90%;
+}
+
+.hamburger-button {
+    width: 30px;
+    color: #000;
+    font-size: 50px;
+    cursor: pointer;
+    height:50px;
+    margin:20px 10px 0px 10px;
 }
 
 
-@media only screen and (max-width:800px) {
+.sidemenu-wrapper{
+    width:280px;
+    background-color:#555555;
+    overflow:hidden;
+}
+
+
+@media only screen and (max-width:853px) {
     .sidemenu-wrapper{
+        display:none;
+    }
+
+    .head-menu {
+        background-color:#ffffff;
+        min-height:80px;
+    }
+
+    .sub-main-contents-title {
+        margin-left:30px;
+        font-size:60px;
+        text-decoration: none;
+    }
+
+    .sub-main-contents-title a{
+        color:#0b5394;
+        text-decoration: none;
+    }
+
+    .sub-main-contents-title a :visited {
+        color:#0b5394;
+        text-decoration: none;
+    }
+
+    .main-contents-title {
         display:none;
     }
 }
 
-@media only screen and (min-width:800px) {
+@media only screen and (min-width:853px) {
+    .head-menu {
+        display:none;
+    }
+
     .sidemenu-wrapper{
-        width:240px;
+        width:280px;
         background-color:#555555;
         overflow:hidden;
+        display:block;
     }
 }
 
@@ -45,25 +97,25 @@ body{
     background-color:#FFFFFF;
     min-height:120px;
     margin-top:10px;
+    padding:5px;
     color:#666666;
     word-wrap: break-word;
 }
 
 .sidemenu-box h4 {
-
-    margin:0;
+    margin:0px 0px 5px 0px;
 }
 
 .main-contents {
-    color:#666666;
+    color:#444444;
     background-color:#FFFFFF;
     padding:30px;
-    min-height:93%;
+    min-height:87%;
 }
 
 
 .main-contents-title {
-    margin-bottom:100px;
+    margin-bottom:60px;
     font-size:74px;
 }
 
@@ -83,6 +135,7 @@ body{
     color:#999999;
     font-size:16px;
     font-weight: bold;
+    float:right;
 }
 
 .inner-contents {
@@ -91,6 +144,8 @@ body{
 
 h1 {
     border-bottom: 2px solid #AAAAAA;
+    margin-bottom:7px;
+    color:#555555;
 }
 
 h3 {
@@ -109,4 +164,9 @@ h3 {
 .tagbox {
     background-color:#DDDDDD;
     margin:3px;
+}
+
+.contents-pair{
+   border-bottom:1px solid #EEEEEE;
+   padding-bottom:10px;
 }
