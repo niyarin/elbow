@@ -87,13 +87,12 @@
                                             (else #f)))))
               (tag-contents ;;make ((tag-name (contents-ids ... )) ... )
                 (alist->hash-table
-                  (->> tag-names
-                       (map (lambda (tag-name)
-                               (cons tag-name
-                                     (->> (reverse with-id-contents)
-                                          (filter (content-has-tag?-fn tag-name))
-                                          (map (lambda (content) (cadr (assq '*contents-id* content)))))))))
+                  (map (lambda (tag-name)
+                         (let ((has-tag? (content-has-tag?-fn tag-name)))
+                           (cons tag-name
+                                 (->> (reverse with-id-contents)
+                                      (filter has-tag?)
+                                      (map (lambda (content) (cadr (assq '*contents-id* content))))))))
+                       tag-names)
                   equal-comparator)))
-         (display tag-names)(newline)
-         (values ids-contents tag-contents)))
-     ))
+         (values ids-contents tag-contents)))))
