@@ -2,10 +2,7 @@
    (import
      (scheme base)
      (srfi 1);(scheme list)
-     (scheme write);FOR DEBUG
-     (scheme cxr)
-     (scheme eval);
-     )
+     (scheme cxr))
    (export sxml->xml-string)
 
    (begin
@@ -19,77 +16,76 @@
      (define %comment? (%tag-checker '*COMMENT*))
      (define %PI? (%tag-checker '*PI*))
 
-      (define (%element? sxml)
+     (define (%element? sxml)
         (and (list? sxml)
              (list? (cdr sxml))
              (symbol? (car sxml))))
 
-     (define (sxml->xml-string sxml . opt)
-       (let* ((env (if (null? opt) '() (car opt)))
-              (env-contains? (if (null? env) '() (cadr (assq 'contains? env))))
-              (eval-env (if (null? env) '() (cadr (assq 'eval-env env))))
-              (convert-env (if (null? env) '() (cadr (assq 'convert-env env)))))
+     (define (%atom->string atom)
+       (cond
+         ((string? atom) atom)
+         ((symbol? atom) (symbol->string atom))
+         ((number? atom) (number->string atom))
+         (else (error "Invalid atom" atom))))
 
+     (define (%attribute->string attribute)
+       (let loop ((attribute attribute)
+                  (res ""))
+         (cond
+           ((null? attribute) res)
+           ((car attribute)
+            => (lambda (key-val)
+                 (loop
+                   (cdr attribute)
+                   (string-append
+                       res
+                       " "
+                       (%atom->string (car key-val))
+                       "="
+                       "\""
+                       (if (null? (cdr key-val)) "" (%atom->string (cadr key-val)))
+                       "\"")))))))
+
+     (define (make-self-closing-tag-string tag-name attribute)
+       (string-append "<" (symbol->string tag-name) attribute "/>"))
+
+     (define (sxml->additional-expander sxml additional-expanders)
+        (let loop ((additional-expanders additional-expanders))
+          (cond
+            ((null? additional-expanders) #f)
+            (((caar additional-expanders) sxml)
+             (cdar additional-expanders))
+            (else (loop (cdr additional-expanders))))))
+
+     (define (sxml->xml-string sxml . opt)
+       (let* ((additional-expanders (if (null? opt) '() (car opt))))
           (let loop ((sxml sxml))
              (cond
                ((string? sxml) sxml)
+               ((number? sxml) (number->string sxml))
                ((null? sxml) "")
-               ((and (not (null? env))
-                     (list? sxml)
-                     (env-contains? convert-env (car sxml)))
-                (let ((eval-res
-                        (eval sxml eval-env)))
-                  (loop eval-res)))
+               ((and (list? sxml)
+                     (sxml->additional-expander sxml additional-expanders))
+                => (lambda (additional-expander)
+                     (additional-expander sxml)))
                ((%top? sxml)
-                  (apply
-                    string-append
-                    (map loop (cdr sxml))))
+                  (apply string-append
+                         (map loop (cdr sxml))))
                ((%PI? sxml)
                   (string-append
-                    "<?"
-                    (symbol->string (cadr sxml))
-                    " "
-                    (caddr sxml)
-                    ">"))
+                    "<?" (symbol->string (cadr sxml)) " " (caddr sxml) ">"))
                ((%element? sxml)
-                (let* ((have-attribute
-                       (%attribute-list? (if (null? (cdr sxml)) #f (cadr sxml))))
-                       (children (if have-attribute (cddr sxml) (cdr sxml)))
-                       (attribute
-                           (if have-attribute
-                              (let loop ((attribute (cdadr sxml))
-                                         (res ""))
-                                (if  (null? attribute)
-                                  res
-                                  (loop
-                                    (cdr attribute)
-                                    (string-append
-                                        res
-                                        " "
-                                        (symbol->string (caar  attribute))
-                                        "="
-                                        "\""
-                                        (if (null? (cdar attribute)) "" (cadar attribute))
-                                        "\""))))
-                              "")))
-
-                      (if (null? children)
-                        (string-append
-                          "<"
-                         (symbol->string  (car sxml))
-                         attribute
-                         "/>")
-
-                       (string-append
-                         "<"
-                         (symbol->string  (car sxml))
-                         attribute
-                         ">"
-                         (apply string-append (map loop (if have-attribute (cddr sxml) (cdr sxml))))
-                         "</"
-                         (symbol->string  (car sxml))
-                         ">"
-                         ))))
-               (else
-                 (error "ERROR:invalid sxml" sxml))
-               ))))))
+                (let* ((attribute
+                         (and (not (null? (cdr sxml)))
+                              (%attribute-list? (cadr sxml))
+                              (cdadr sxml)))
+                       (children (if attribute (cddr sxml) (cdr sxml)))
+                       (attribute-string (if attribute
+                                             (%attribute->string attribute) "")))
+                  (if (null? children)
+                    (make-self-closing-tag-string (car sxml) attribute-string)
+                     (string-append
+                       "<" (symbol->string (car sxml)) attribute-string ">"
+                       (apply string-append (map loop children))
+                       "</" (symbol->string  (car sxml)) ">"))))
+               (else (error "ERROR:invalid sxml" sxml))))))))

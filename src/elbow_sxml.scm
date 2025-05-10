@@ -27,7 +27,14 @@
         (let* ((expand-env (elbow-sxml-make-default-environment))
                (contains? (cadr (assq 'contains? expand-env)))
                (eval-env (cadr (assq 'eval-env expand-env)))
-               (convert-env (cadr (assq 'convert-env expand-env))))
+               (convert-env (cadr (assq 'convert-env expand-env)))
+               (eval-fn #f)
+               (eval-elem? (lambda (sxml)
+                             (contains? convert-env (car sxml)))))
+           (set! eval-fn
+                 (lambda (sxml) (sxml->xml-string
+                             (eval sxml eval-env)
+                             `((,eval-elem? . ,eval-fn)))))
            (for-each
              (lambda (name)
                (eval (list 'define name '()) eval-env))
@@ -51,5 +58,4 @@
 
           (sxml->xml-string
                template
-               expand-env)))))
-
+               `((,eval-elem? . ,eval-fn)))))))
