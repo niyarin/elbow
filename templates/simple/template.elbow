@@ -118,7 +118,7 @@
                                                  (else "")))
                                              (file-name
                                                (cond
-                                                 ((assq '*contents-output-file-name* content)
+                                                 ((assq '*contents-output-filename* content)
                                                   => cadr)
                                                  (else ""))))
                                         (list

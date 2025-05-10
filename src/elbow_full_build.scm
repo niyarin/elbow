@@ -151,7 +151,6 @@
                                 reverse
                                 (take (min (vector-length ids-contents) 5))))
                      contents-config))
-
              ;Create tag pages
              (->> (set->list all-tag-names)
                   (for-each
