@@ -1,35 +1,28 @@
 (define-library (niyarin sxml)
    (import
      (scheme base)
-     ;(scheme list)
+     (srfi 1);(scheme list)
      (scheme write);FOR DEBUG
-     (srfi 1)
      (scheme cxr)
      (scheme eval);
      )
    (export sxml->xml-string)
 
    (begin
-     (define (%attribute-list? sxml)
-       (and 
-         (list? sxml)
-         (eq? (car sxml) '@)))
+     (define (%tag-checker tag-name)
+       (lambda (sxml)
+         (and (list? sxml)
+              (eq? (car sxml) tag-name))))
 
-     (define (%top? sxml)
-       (and
-         (list? sxml)
-         (eq? (car sxml) '*TOP*)))
-
-     (define (%PI? sxml)
-       (and
-         (list? sxml)
-         (eq? (car sxml) '*PI*)))
+     (define %attribute-list? (%tag-checker '@))
+     (define %top? (%tag-checker '*TOP*))
+     (define %comment? (%tag-checker '*COMMENT*))
+     (define %PI? (%tag-checker '*PI*))
 
       (define (%element? sxml)
-        (and
-          (list? sxml)
-          (list? (cdr sxml))
-          (symbol? (car sxml))))
+        (and (list? sxml)
+             (list? (cdr sxml))
+             (symbol? (car sxml))))
 
      (define (sxml->xml-string sxml . opt)
        (let* ((env (if (null? opt) '() (car opt)))
@@ -48,8 +41,8 @@
                         (eval sxml eval-env)))
                   (loop eval-res)))
                ((%top? sxml)
-                  (apply 
-                    string-append 
+                  (apply
+                    string-append
                     (map loop (cdr sxml))))
                ((%PI? sxml)
                   (string-append
@@ -59,7 +52,7 @@
                     (caddr sxml)
                     ">"))
                ((%element? sxml)
-                (let* ((have-attribute 
+                (let* ((have-attribute
                        (%attribute-list? (if (null? (cdr sxml)) #f (cadr sxml))))
                        (children (if have-attribute (cddr sxml) (cdr sxml)))
                        (attribute
@@ -81,7 +74,7 @@
                               "")))
 
                       (if (null? children)
-                        (string-append 
+                        (string-append
                           "<"
                          (symbol->string  (car sxml))
                          attribute
@@ -99,7 +92,4 @@
                          ))))
                (else
                  (error "ERROR:invalid sxml" sxml))
-               ))
-       )
-     )))
-
+               ))))))
