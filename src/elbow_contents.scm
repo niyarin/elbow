@@ -5,7 +5,7 @@
 
 (define-library (elbow contents)
    (import (scheme base)
-           (only (srfi 1) filter);scheme list
+           (only (srfi 1) filter append-map delete-duplicates);scheme list
            (elbow utils date-tree)
            (elbow lib)
            (elbow misc)
@@ -24,9 +24,9 @@
    (begin
 
      (define (elbow-contents-add-aux-data-to-content content)
-       (let ((root-dir (cadr (assv '*contents-root-relative-path*  content))))
+       (let ((root-dir (cadr (assq '*contents-root-relative-path*  content))))
          ;タグのリンクをつける
-         (let loop ((tags (cadr (assv '*contents-tags* content)))
+         (let loop ((tags (cadr (assq '*contents-tags* content)))
                     (tag-and-links '()))
            (if (null? tags)
              (set! content (cons (list '*contents-tags-and-links* tag-and-links) content))
@@ -52,13 +52,13 @@
      (define (elbow-contents-render-contents? content)
         (not
           (cond
-           ((assv '*contents-draft* content) => cadr)
+           ((assq '*contents-draft* content) => cadr)
            (else #f))))
 
      (define (elbow-contents-preprocess contents-list)
        (define (internal-elbow-contents-generate-name contents)
          (let ((date
-                 (elbow-date-tree-decompose-hyphen-date-string (cadr (assv '*contents-date* contents)))))
+                 (elbow-date-tree-decompose-hyphen-date-string (cadr (assq '*contents-date* contents)))))
            (string-append
              (string-append
                 "contents/"
@@ -73,16 +73,12 @@
                 (filter elbow-contents-render-contents? contents-list))
               (ids-contents (list->vector with-id-contents))
               (tag-names
-                (set->list
-                   (apply set
-                          equal-comparator
-                          (apply
-                            append
-                             (map (lambda (content)
-                                      (cond ((assv '*contents-tags* content)
-                                             => cadr)
-                                            (else '())))
-                                  (reverse with-id-contents))))))
+                (delete-duplicates
+                    (append-map (lambda (content)
+                                        (cond ((assq '*contents-tags* content) => cadr)
+                                              (else '())))
+                                (reverse with-id-contents))
+                    equal?))
               (content-has-tag?-fn (lambda (tag-name)
                                      (lambda (content)
                                       (cond ((assq '*contents-tags* content)
@@ -98,5 +94,6 @@
                                           (filter (content-has-tag?-fn tag-name))
                                           (map (lambda (content) (cadr (assq '*contents-id* content)))))))))
                   equal-comparator)))
+         (display tag-names)(newline)
          (values ids-contents tag-contents)))
      ))
