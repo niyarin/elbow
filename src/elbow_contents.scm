@@ -9,7 +9,7 @@
            (elbow utils date-tree)
            (elbow lib)
            (elbow misc)
-           (only (srfi 95) sort! sort)
+           (only (srfi 95) sort)
            (only (srfi 69) make-hash-table hash-table-ref hash-table-set! hash-table->alist hash-table-exists? alist->hash-table)
            (only (srfi 113) set set->list);scheme set
            (only (srfi 114) equal-comparator)
@@ -82,7 +82,12 @@
                                       (else '(0 0 0 0))))
                              content))
                      render-contents))
-              (with-id-contents formatted-render-contents)
+              (with-id-contents
+                (sort formatted-render-contents
+                      (lambda (a b)
+                        (elbow-date-tree-less?
+                          (cadr (assq '*formatted-contents-date* a))
+                          (cadr (assq '*formatted-contents-date* b))))))
               (ids-contents (list->vector with-id-contents))
               (tag-names
                 (set->list

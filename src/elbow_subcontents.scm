@@ -3,7 +3,6 @@
 (include "./elbow_lib.scm")
 (include "./elbow_misc.scm")
 
-
 (define-library (elbow subcontents)
    (import (scheme base)
            (scheme write)
@@ -23,10 +22,8 @@
             (elbow-lib-tag-escape (cadr (assv '*contents-tag-name*
                                               env-contents))))))
 
-     ;コンテンツをまとめてページ(タグ、日付、など)を生成する　
-     (define (elbow-subcontents-create-sub-contents base-name-generator template subcontents env env-contents output-dir contents-number-per-page)
-       (define (elbow-subcontents-aux-title-text-thumbnail&tails ls n)
-         (let loop ((i 0)(ls ls) (res '()))
+    (define (%title-text-thumbnail&tails env-contents ls n)
+         (let loop ((i 0) (ls ls) (res '()))
            (cond
              ((null? ls)
                (values (reverse res) ls))
@@ -45,21 +42,26 @@
                                (cadr (assq '*contents-root-relative-path* env-contents))
                                "contents"
                                (cadr (assq '*contents-sub-directory* (car ls)))
-                               (cadr (assq '*contents-filename* (car ls))))));link
+                               (cadr (assq '*contents-output-filename* (car ls))))));link
                     res))))))
+
+     (define (%make-page-links base-name page-size)
+      (let loop ((i 0) (res-list '()))
+        (cond
+          ((= i page-size)
+              (list->vector (reverse res-list))) ((zero? i)
+              (loop (+ i 1) (cons (string-append base-name ".html") res-list)))
+
+          (else
+            (loop (+ i 1) (cons (string-append base-name "_pages_" (number->string (+ i 1)) ".html") res-list))))))
+
+     ;コンテンツをまとめてページ(タグ、日付、など)を生成する　
+     (define (elbow-subcontents-create-sub-contents base-name-generator template subcontents env env-contents output-dir contents-number-per-page)
 
        (let* ((page-size (ceiling (/ (length subcontents) contents-number-per-page)))
               (root-dir (cadr (assv '*contents-root-relative-path*  env-contents)))
               (base-name (base-name-generator env-contents))
-              (page-links
-                (let loop ((i 0) (res-list '()))
-                  (cond
-                    ((= i page-size)
-                        (list->vector (reverse res-list))) ((zero? i)
-                        (loop (+ i 1) (cons (string-append base-name ".html") res-list)))
-
-                    (else
-                      (loop (+ i 1) (cons (string-append base-name "_pages_" (number->string (+ i 1)) ".html") res-list)))))))
+              (page-links (%make-page-links base-name page-size)))
              (let loop ((i 0)(subcontents subcontents));ページに関するループ
                (let ((next-page (if (>= i (- page-size 1)) #f (vector-ref page-links (+ i 1))))
                      (prev-page (if (zero? i) #f (vector-ref page-links (- i 1))))
@@ -72,7 +74,8 @@
                            (set! env-contents (cons (list '*contents-prev-page-link* prev-page) env-contents)))
 
 
-                     (let-values (((title-text-thumbnails-list tails) (elbow-subcontents-aux-title-text-thumbnail&tails subcontents contents-number-per-page)))
+                     (let-values (((title-text-thumbnails-list tails)
+                                   (%title-text-thumbnail&tails env-contents subcontents contents-number-per-page)))
                         (set! next-subcontents tails)
                         (set! env-contents
                               (cons
