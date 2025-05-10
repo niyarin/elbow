@@ -8,6 +8,7 @@
           (scheme write);;
           (scheme file) (scheme read)
           (srfi 19)
+          (prefix (elbow lib) elib/)
           (prefix (elbow path) epath/)
           (prefix (elbow utils date-tree) dtree/))
   (export add-filename-key-middleware remove-dotted-file-middleware
@@ -20,6 +21,7 @@
           add-parsed-date-info-to-contents-middleware
           add-ids-to-contents-middleware
           add-output-name-middleware
+          add-short-text-middleware 
           elbow-pipeline>)
   (begin
     (define-syntax elbow-pipeline>
@@ -154,4 +156,12 @@
                        (contents-add content '*contents-id* id))
                      (iota (length sorted-contents-list))
                      sorted-contents-list)
-                global-env)))))
+                global-env)))
+
+    (define (add-short-text-middleware contents-list global-env)
+      (values (map (lambda (content)
+                     (cons (list '*contents-short-text*
+                                 (elib/elbow-lib-generate-short-text '() content 100))
+                           content))
+                   contents-list)
+              global-env))))
