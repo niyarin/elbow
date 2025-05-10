@@ -71,6 +71,7 @@
              emware/add-tags-info-to-global-env-middleware
              emware/calc-major-tags-middleware
              emware/add-parsed-date-info-to-contents-middleware
+             emware/add-date-as-list-to-contents-middleware
              emware/add-ids-to-contents-middleware
              cons))
 
@@ -141,6 +142,7 @@
 
           (let-values
             (((ids-contents tag-contents)
+                ;; tag-contents: ((tag-name (contents-ids ... )) ... )
                 (elbow-contents-preprocess contents-original)))
              (set! contents-config
                    (cons

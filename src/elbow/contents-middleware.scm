@@ -3,17 +3,20 @@
           (scheme list)
           (scheme set)
           (scheme comparator)
-          (scheme sort)
+          (only (scheme sort) list-sort)
+          (only (srfi 95) sort)
           (scheme write);;
           (scheme file) (scheme read)
           (srfi 19)
-          (prefix (elbow path) epath/))
+          (prefix (elbow path) epath/)
+          (prefix (elbow utils date-tree) dtree/))
   (export add-filename-key-middleware remove-dotted-file-middleware
           filter-elbow-file-middleware
           read-file-middleware
           remove-draft-middleware
           add-tags-info-to-global-env-middleware
           calc-major-tags-middleware
+          add-date-as-list-to-contents-middleware
           add-parsed-date-info-to-contents-middleware
           add-ids-to-contents-middleware
           add-output-name-middleware
@@ -97,7 +100,7 @@
                         (contents-ref '*contents-tags* content '()))
                       contents-list))
 
-    (define (%freq-equal ls)
+    (define (%freq-equal ls);;make ((tag . n-articls) ... )
       (map (lambda (name)
              (cons name (count (lambda (x) (equal? x name)) ls)))
            (delete-duplicates ls)))
@@ -113,6 +116,7 @@
         (values contents-list global-env)
         (let ((freq (list-sort (lambda (x y) (> (cdr x) (cdr y)))
                                (%freq-equal (%tag-list contents-list)))))
+          (write freq)(newline)
           (values contents-list
                   (cons  (list '*major-tags* (map car (take freq (min (length freq) 5))))
                          global-env)))))
@@ -127,14 +131,27 @@
              contents-list)
         global-env))
 
+    (define (add-date-as-list-to-contents-middleware contents-list global-env)
+      (values
+        (map (lambda (content)
+              (cons (list '*formatted-contents-date*
+                          (cond ((assv '*contents-date* content)
+                                  => (lambda (key-datestr)
+                                       (dtree/elbow-date-tree-decompose-hyphen-date-string (cadr key-datestr))))
+                                 (else '(0 0 0 0))))
+                       content))
+             contents-list)
+        global-env))
+
     (define (add-ids-to-contents-middleware contents-list global-env)
       (let ((sorted-contents-list
-              (list-sort (lambda (x y)
-                           (time<? (date->time-monotonic (contents-ref '*date-object* x #f))
-                                   (date->time-monotonic (contents-ref '*date-object* y #f))))
-                         contents-list)))
+              (sort contents-list
+                    (lambda (a b)
+                      (dtree/elbow-date-tree-less?
+                        (contents-ref '*formatted-contents-date* a #f)
+                        (contents-ref '*formatted-contents-date* b #f))))))
         (values (map (lambda (id content)
                        (contents-add content '*contents-id* id))
                      (iota (length sorted-contents-list))
-                     contents-list)
+                     sorted-contents-list)
                 global-env)))))
