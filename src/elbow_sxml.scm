@@ -55,7 +55,8 @@
                  (list 'define (car apair) (list 'quote (cadr apair)))
                  eval-env))
              (reverse env-contents));TODO:あとからきたもので上書きされるのでてきとーに対処　跡で治す
-
-          (sxml->xml-string
-               template
-               `((,eval-elem? . ,eval-fn)))))))
+          (string-append
+            "<!DOCTYPE html>\n"
+            (sxml->xml-string
+                 template
+                 `((,eval-elem? . ,eval-fn))))))))
