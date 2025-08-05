@@ -250,38 +250,39 @@
        (define *INIT-FULLBUILD-OPTION*
          '(("contents-directory" 1)("template-directory" 1)("output-directory" 1)))
 
-       (define (elbow-fuill-build/build-cmd-opt command-line-options)
-         (let ((parsed-option
-               (let loop ((options (elbow-misc/assoc-with-default
+      (define (parse-option command-line-options)
+          (let loop ((options (elbow-misc/assoc-with-default
                                      "options" command-line-options '()
                                      equal?  cdr))
                           (res '()))
                  (cond
                    ((null? options) res)
                    ((assoc (car options) *INIT-FULLBUILD-OPTION*)
-                        =>  (lambda (opt-size-pair)
-                              (cond
-                                ((zero? (cadr opt-size-pair))
+                        =>  (lambda (opt-size-apair)
+                              (case (cadr opt-size-apair)
+                                ((0)
                                  (loop (cdr options)
                                        (cons (list (car options) #t)
                                              res)))
-                                ((= (cadr opt-size-pair) 1)
+                                ((1)
                                  (loop (cddr options)
                                        (cons (take options 2) res))))))
                    (else
-                     (error "undefined option " (car options)))))))
-           (let ((contents-directory (elbow-misc/assoc-with-default
-                                       "contents-directory"
-                                       parsed-option
-                                       "."))
-                 (template-directory (elbow-misc/assoc-with-default
+                     (error "undefined option " (car options))))))
+
+       (define (elbow-fuill-build/build-cmd-opt command-line-options)
+         (let* ((parsed-option (parse-option command-line-options))
+                (contents-directory (elbow-misc/assoc-with-default
+                                        "contents-directory"
+                                        parsed-option
+                                        "."))
+                (template-directory (elbow-misc/assoc-with-default
                                        "template-directory"
                                        parsed-option
                                        #f))
-                 (output-directory (elbow-misc/assoc-with-default
+                (output-directory (elbow-misc/assoc-with-default
                                      "output-directory"
                                      parsed-option
                                      "./build")))
-             (begin
-               (unless template-directory (elbow-lib-error NO-TEMPLATE-MESSAGE))
-               (elbow-full-build contents-directory template-directory output-directory)))))))
+         (unless template-directory (elbow-lib-error NO-TEMPLATE-MESSAGE))
+         (elbow-full-build contents-directory template-directory output-directory)))))
