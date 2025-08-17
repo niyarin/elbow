@@ -22,8 +22,8 @@
                 ((null? options) res)
                 ((assoc (car options) init-options)
                      =>  (lambda (opt-size-pair)
-                           (cond 
-                             ((= (cadr opt-size-pair) 0)
+                           (cond
+                             ((zero? (cadr opt-size-pair))
                               (loop (cdr options) (cons (list (car options) #t) res)))
                              ((= (cadr opt-size-pair) 1)
                               (loop (cddr options) (cons (list (car options) (cadr options)) res))))))

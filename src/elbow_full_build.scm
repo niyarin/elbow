@@ -80,7 +80,7 @@
 
       (define (read-template template-dir)
         (call-with-input-file (string-append template-dir "/template.elbow")
-                              (lambda (port) (read port))))
+                              read))
 
       (define (take-recent-n-entries contents n)
         (let ((len (length contents)))
@@ -98,7 +98,7 @@
                  (->> *DEFAULT-CONTENTS-CONFIG*
                       (append (call-with-input-file
                                 (string-append contents-dir "/config.elbow")
-                                (lambda (port) (read port))))))
+                                read))))
                (contents-original/env
                  (%read-files-without-dotted
                    (string-append contents-dir "/contents/")))
@@ -155,7 +155,7 @@
               (let ((tag-contents-env ;TODO:template直下にあるという前提(あとで、設定で変更できるようにする
                      (call-with-input-file (string-append template-dir
                                                           "/tag_contents.elbow")
-                                           (lambda (port) (read port)))))
+                                           read)))
 
                 ;Create index
                 (elbow-subcontents-create-sub-contents
@@ -253,8 +253,8 @@
       (define (parse-option command-line-options)
           (let loop ((options (elbow-misc/assoc-with-default
                                      "options" command-line-options '()
-                                     equal?  cdr))
-                          (res '()))
+                                     equal? cdr))
+                     (res '()))
                  (cond
                    ((null? options) res)
                    ((assoc (car options) *INIT-FULLBUILD-OPTION*)
