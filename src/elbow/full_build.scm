@@ -1,14 +1,3 @@
-(include "./non_portable_utils/directory_utils"
-         "./elbow_markup.scm"
-         "./elbow_contents.scm"
-         "./elbow_sxml.scm"
-         "./elbow_misc.scm"
-         "./elbow_subcontents.scm"
-         "./lib/thread-syntax.scm")
-(include "./elbow/path.scm")
-(include "./elbow/contents-middleware.scm")
-
-
 (define-library (elbow full-build)
    (cond-expand
      ((library (scheme set))
@@ -18,7 +7,7 @@
               (srfi 114)
               (srfi 69)
               (prefix (elbow contents) econ/)
-              (elbow lib) (elbow markup) (elbow subcontents) (elbow sxml)
+              (elbow lib) (elbow subcontents) (elbow sxml)
               (prefix (elbow misc) elbow-misc/)
               (only (niyarin thread-syntax) ->> ->)
               (prefix (elbow contents-middleware) emware/)
@@ -34,14 +23,13 @@
               (srfi 69)
               (elbow contents)
               (elbow lib)
-              (elbow markup)
               (elbow subcontents)
               (elbow sxml)
               (prefix (elbow misc) elbow-misc/)
               (prefix (elbow contents-middleware) emware/)
               (niyarin non-portable-utils directory-library-wrapper))))
 
-   (export elbow-full-build build-cmd-opt)
+   (export full-build build-cmd-opt)
 
    (begin
       (define *DEFAULT-CONTENTS-CONFIG*
@@ -190,7 +178,7 @@
                     port)))))
           contents-original))
 
-      (define (elbow-full-build contents-dir template-dir output-dir)
+      (define (full-build contents-dir template-dir output-dir)
         (let* ((base-contents-config
                  (->> *DEFAULT-CONTENTS-CONFIG*
                       (append (call-with-input-file
@@ -285,4 +273,4 @@
                                      parsed-option
                                      "./build")))
          (unless template-directory (elbow-lib-error NO-TEMPLATE-MESSAGE))
-         (elbow-full-build contents-directory template-directory output-directory)))))
+         (full-build contents-directory template-directory output-directory)))))

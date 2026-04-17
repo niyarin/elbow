@@ -1,10 +1,19 @@
 (include "niyarin_optparse/niyarin_optparse.scm")
 (include "elbow_init.scm")
-(include "elbow_misc.scm")
-(include "full_build.scm")
+(include "./non_portable_utils/directory_utils"
+         "./elbow_markup.scm"
+         "./elbow_contents.scm"
+         "./elbow_sxml.scm"
+         "./elbow_misc.scm"
+         "./elbow_subcontents.scm"
+         "./lib/thread-syntax.scm")
+(include "./elbow/path.scm")
+(include "./elbow/contents-middleware.scm")
+(include "./elbow/full_build.scm")
 
 (import (scheme base) (scheme write) (scheme process-context)
-        (niyarin optparse) (elbow lib) (elbow init) (elbow full-build)
+        (niyarin optparse) (elbow lib) (elbow init)
+        (prefix (elbow full-build) full-build/)
         (prefix (elbow misc) elbow-misc/))
 
 (define version 'beta)
@@ -41,7 +50,7 @@
          ((string=? command "init") (elbow-init parsed-option))
          ((string=? command "full-build")
           (elbow-misc/print-info "Run full-build...")
-          ((lambda () (build-cmd-opt parsed-option))))
+          ((lambda () (full-build/build-cmd-opt parsed-option))))
          ((string=? command "none")
              (elbow-lib-error-msg  "Elbow error: no command.\n")
              (newline (current-error-port))
