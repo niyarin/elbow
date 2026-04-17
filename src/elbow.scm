@@ -1,11 +1,11 @@
 (include "niyarin_optparse/niyarin_optparse.scm")
 (include "elbow_init.scm")
 (include "elbow_misc.scm")
-(include "elbow_full_build.scm")
+(include "full_build.scm")
 
 (import (scheme base) (scheme write) (scheme process-context)
-        (niyarin optparse) (elbow lib) (elbow init) (elbow full build)
-        (elbow misc))
+        (niyarin optparse) (elbow lib) (elbow init) (elbow full-build)
+        (prefix (elbow misc) elbow-misc/))
 
 (define version 'beta)
 
@@ -41,7 +41,7 @@
          ((string=? command "init") (elbow-init parsed-option))
          ((string=? command "full-build")
           (elbow-misc/print-info "Run full-build...")
-          ((lambda () (elbow-fuill-build/build-cmd-opt parsed-option))))
+          ((lambda () (build-cmd-opt parsed-option))))
          ((string=? command "none")
              (elbow-lib-error-msg  "Elbow error: no command.\n")
              (newline (current-error-port))

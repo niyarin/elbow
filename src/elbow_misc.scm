@@ -4,42 +4,42 @@
            (scheme write)
            (scheme case-lambda)
            (srfi 42))
-   (export elbow-misc/for-each-with-index elbow-misc/print-info
-           elbow-misc/assq-with-default elbow-misc/assoc-with-default
-           elbow-misc/map-with-index elbow-misc/concat-path
-           elbow-misc/dot-file-name?
-           elbow-misc/remove-head-slash
-           elbow-misc/md-file-name?)
+   (export for-each-with-index print-info
+           assq-with-default assoc-with-default
+           map-with-index concat-path
+           dot-file-name?
+           remove-head-slash
+           md-file-name?)
    (begin
-     (define (elbow-misc/print-info info)
+     (define (print-info info)
        (display info)(newline))
 
-     (define (elbow-misc/dot-file-name? file-name)
+     (define (dot-file-name? file-name)
          (char=? #\. (string-ref file-name 0)))
 
-     (define (elbow-misc/md-file-name? file-name)
+     (define (md-file-name? file-name)
        (let ((find-right-index (string-contains-right file-name ".md")))
          (and find-right-index
                (= (string-length file-name)
                   (+ find-right-index 3)))))
 
-     (define (elbow-misc/assq-with-default key alist default)
+     (define (assq-with-default key alist default)
        (cond
          ((assq key alist) => cadr)
          (else default)))
 
-     (define elbow-misc/assoc-with-default
+     (define assoc-with-default
        (case-lambda
          ((key alist default)
-          (elbow-misc/assoc-with-default key alist default equal? cadr))
+          (assoc-with-default key alist default equal? cadr))
          ((key alist default comparator)
-          (elbow-misc/assoc-with-default key alist default comparator cadr))
+          (assoc-with-default key alist default comparator cadr))
          ((key alist default comparator value-accessor)
           (cond
             ((assoc key alist comparator) => value-accessor)
             (else default)))))
 
-    (define (elbow-misc/concat-path . path-list)
+    (define (concat-path . path-list)
       (let loop ((input path-list)
                  (res ""))
         (cond
@@ -49,7 +49,7 @@
           ((loop (cdr input)
                  (string-append res "/" (car input)))))))
 
-    (define (elbow-misc/remove-head-slash input)
+    (define (remove-head-slash input)
       (cond
         ((char=? (string-ref input 0) #\/) (substring input 1 (string-length input)))
         ((and (char=? (string-ref input 0) #\.)
@@ -57,12 +57,12 @@
          (substring input 2 (string-length input)))
         (else input)))
 
-    (define (elbow-misc/map-with-index fn . ls)
+    (define (map-with-index fn . ls)
          (apply map
                 `(,fn ,(list-ec (: i 0 (apply min (map length ls))) i)
                       . ,ls)))
 
-     (define (elbow-misc/for-each-with-index fn . ls)
+     (define (for-each-with-index fn . ls)
          (apply for-each
                 `(,fn ,(list-ec (: i 0 (apply min (map length ls))) i)
                       . ,ls)))))

@@ -8,7 +8,7 @@
            (scheme write)
            (scheme file)
            (elbow sxml)
-           (elbow misc)
+           (prefix (elbow misc) elbow-misc/)
            (elbow markup)
            (elbow lib))
 

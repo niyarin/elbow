@@ -9,7 +9,7 @@
 (include "./elbow/contents-middleware.scm")
 
 
-(define-library (elbow full build)
+(define-library (elbow full-build)
    (cond-expand
      ((library (scheme set))
       (import (scheme base) (scheme read) (scheme write) (scheme file)
@@ -19,7 +19,7 @@
               (srfi 69)
               (prefix (elbow contents) econ/)
               (elbow lib) (elbow markup) (elbow subcontents) (elbow sxml)
-              (elbow misc)
+              (prefix (elbow misc) elbow-misc/)
               (only (niyarin thread-syntax) ->> ->)
               (prefix (elbow contents-middleware) emware/)
               (niyarin non-portable-utils directory-library-wrapper)))
@@ -37,10 +37,11 @@
               (elbow markup)
               (elbow subcontents)
               (elbow sxml)
+              (prefix (elbow misc) elbow-misc/)
               (prefix (elbow contents-middleware) emware/)
               (niyarin non-portable-utils directory-library-wrapper))))
 
-   (export elbow-full-build elbow-fuill-build/build-cmd-opt)
+   (export elbow-full-build build-cmd-opt)
 
    (begin
       (define *DEFAULT-CONTENTS-CONFIG*
@@ -89,12 +90,108 @@
 
       (define (content->output-path output-dir content)
         (string-append output-dir "/contents/"
-                               (cadr (assq '*contents-sub-directory* content)) "/"
-                               (cond ((assq '*contents-output-filename* content) => cadr)
-                                     (else (cadr (assq '*contents-output-filename* content))))))
+                       (cadr (assq '*contents-sub-directory* content)) "/"
+                       (cadr (assq '*contents-output-filename* content))))
+
+      (define (%make-tag->path-alist tag-names)
+        (map (lambda (tag-name)
+               (list tag-name
+                     (string-append "/tags/" tag-name ".html")))
+             tag-names))
+
+      (define (%make-tag->path tag->path-alist)
+        (lambda (tag)
+          (cadr (assoc tag tag->path-alist string=?))))
+
+      (define (%enrich-contents contents-list tag->path contents-relative-root-path)
+        (map (lambda (content)
+               (cons* `(*contents-sub-directory* ,(econ/make-sub-directory-name content))
+                      `(*contents-root-relative-path* ,contents-relative-root-path)
+                      `(*contents-tags-and-links*
+                         ,(map (lambda (tag-name)
+                                 (list tag-name
+                                       (string-append contents-relative-root-path
+                                                      (tag->path tag-name))))
+                               (cadr (assq '*contents-tags* content))))
+                      content))
+             contents-list))
+
+      (define (%make-contents-config major-tags tag->path contents-original base-contents-config)
+        (cons* `(*site-selected-tags* ,major-tags)
+               `(*site-selected-tags-and-links*
+                  ,(->> major-tags
+                        (map (lambda (tag)
+                               (list tag (tag->path tag))))))
+               `(*site-recent-entries* ,(take-recent-n-entries contents-original 5))
+               base-contents-config))
+
+      (define (%create-index-page template contents-original contents-config tag-contents-env output-dir)
+        (elbow-subcontents-create-sub-contents
+          (lambda (_) "index")
+          template
+          (reverse contents-original)
+          contents-config
+          (cons* (list '*contents-title* "Index")
+                 (list '*contents-sub-directory* "./")
+                 (list '*contents-root-relative-path* "./")
+                 tag-contents-env)
+          output-dir
+          10))
+
+      (define (%create-tag-pages template contents-original contents-config
+                                 tag-contents-env output-dir all-tag-names)
+        (elbow-misc/print-info "- Make tag pages.")
+        (let* ((ids-contents (list->vector contents-original))
+               (tag->ids (econ/make-tag->ids contents-original))
+               (tag->contents
+                 (lambda (tag-name)
+                   (map (lambda (index)
+                          (vector-ref ids-contents index))
+                        (tag->ids tag-name)))))
+          (for-each
+            (lambda (tag-name)
+              (elbow-misc/print-info (string-append "    - " tag-name))
+              (let ((sub-contents (tag->contents tag-name)))
+                (elbow-subcontents-create-sub-contents
+                  elbow-subcontents-tag-file-base-name
+                  template
+                  sub-contents
+                  contents-config
+                  (cons* (list '*contents-title* (string-append "TAGS:" tag-name))
+                         (list '*contents-tag-name* tag-name)
+                         (list '*contents-sub-directory* "tags")
+                         (list '*contents-root-relative-path* "..")
+                         tag-contents-env)
+                  output-dir
+                  6)))
+            all-tag-names)))
+
+      (define (%create-content-pages template contents-original contents-config output-dir)
+        (for-each
+          (lambda (content)
+            (create-directory*
+              (string-append output-dir "/contents/"
+                             (cadr (assq '*contents-sub-directory* content))))
+            (call-with-output-file
+              (content->output-path output-dir content)
+              (lambda (port)
+                (let ((sxml-scm-code
+                        (cond ((or (and (assq '*contents-use-template* content)
+                                        (not (cadr (assq '*contents-use-template* content))))
+                                   (and (assq '*contents-use-template* contents-config)
+                                        (not (cadr (assq '*contents-use-template* contents-config)))))
+                               '(begin *contents-body*))
+                              ((equal? (assq '*contents-format* content)
+                                       '(*contents-format* markdown))
+                               (begin (display "MARK DOWN!") (newline) '()))
+                              (else template))))
+                  (display
+                    (elbow-sxml-generate-html sxml-scm-code contents-config content)
+                    port)))))
+          contents-original))
 
       (define (elbow-full-build contents-dir template-dir output-dir)
-        (let* ((base-contents-fonfig
+        (let* ((base-contents-config
                  (->> *DEFAULT-CONTENTS-CONFIG*
                       (append (call-with-input-file
                                 (string-append contents-dir "/config.elbow")
@@ -102,129 +199,32 @@
                (contents-original/env
                  (%read-files-without-dotted
                    (string-append contents-dir "/contents/")))
-
                (contents-env (cdr contents-original/env))
                (all-tag-names (set->list (cadr (assq '*tag-names* contents-env))))
-               (tag->path-alist
-                  (map (lambda (tag-name)
-                         (list tag-name
-                               (string-append
-                                 "/tags/"
-                                 tag-name
-                                 ".html")))
-                       all-tag-names))
-
-               (tag->path
-                 (lambda (tag)
-                   (cadr (assoc tag tag->path-alist string=?))))
-
-
+               (tag->path-alist (%make-tag->path-alist all-tag-names))
+               (tag->path (%make-tag->path tag->path-alist))
                (contents-relative-root-path "../..")
                (contents-original
-                 (map (lambda (content)
-                        (cons* `(*contents-sub-directory* ,(econ/make-sub-directory-name content))
-                               `(*contents-root-relative-path* ,contents-relative-root-path)
-                               `(*contents-tags-and-links*
-                                  ,(map (lambda (tag-name)
-                                          (list tag-name
-                                                (string-append contents-relative-root-path
-                                                               (tag->path tag-name))))
-                                        (cadr (assq '*contents-tags* content))))
-                               content))
-                      (car contents-original/env)))
-
-
-
+                 (%enrich-contents (car contents-original/env)
+                                   tag->path
+                                   contents-relative-root-path))
                (major-tags (cadr (assq '*major-tags* contents-env)))
                (contents-config
-                 (cons* `(*site-selected-tags* ,major-tags)
-                        `(*site-selected-tags-and-links*
-                           ,(->> major-tags
-                                 (map (lambda (tag)
-                                        (list tag (tag->path tag))))))
-                        `(*site-recent-entries*  ,(take-recent-n-entries contents-original 5))
-                        base-contents-fonfig))
-                (template (read-template template-dir)))
-         (begin
-            ;Create output-dir
-            (elbow-misc/print-info "- Make output-directories.")
-            (elbow-full-build-create-output-dirs output-dir template-dir contents-dir))
-
-          (let ((ids-contents (list->vector contents-original)))
-               ;Create tag pages
-              (let ((tag-contents-env ;TODO:template直下にあるという前提(あとで、設定で変更できるようにする
-                     (call-with-input-file (string-append template-dir
-                                                          "/tag_contents.elbow")
-                                           read)))
-
-                ;Create index
-                (elbow-subcontents-create-sub-contents
-                   (lambda (_) "index")
-                   template
-                   (reverse contents-original)
-                   contents-config
-                   (cons* (list '*contents-title* (string-append "Index"))
-                          (list '*contents-sub-directory* "./")
-                          (list '*contents-root-relative-path*  "./")
-                         tag-contents-env)
-                   output-dir
-                   10)
-
-                  (elbow-misc/print-info "- Make tag pages.")
-                  ;;create tags
-                  (let* ((tag->ids (econ/make-tag->ids contents-original))
-                         (tag->contents
-                           (lambda (tag-name)
-                             (map (lambda (index)
-                                    (vector-ref ids-contents index))
-                                  (tag->ids tag-name)))))
-
-                      (for-each
-                        (lambda (tag-name)
-                          (elbow-misc/print-info (string-append "    - " tag-name))
-                          (let ((sub-contents (tag->contents tag-name)))
-                             (elbow-subcontents-create-sub-contents
-                               elbow-subcontents-tag-file-base-name
-                               template
-                               sub-contents
-                               contents-config
-                               (cons* (list '*contents-title* (string-append "TAGS:" tag-name))
-                                      (list '*contents-tag-name* tag-name)
-                                      (list '*contents-sub-directory* "tags")
-                                      (list '*contents-root-relative-path*  "..")
-                                      tag-contents-env)
-                               output-dir
-                               6)))
-                         all-tag-names))))
-
-         ;Create contents
-         (for-each
-            (lambda (content)
-               (create-directory*
-                 (string-append output-dir "/contents/" (cadr (assq '*contents-sub-directory* content))));TODO:明らかに悪そう。あとで修正する
-
-              (call-with-output-file
-                (content->output-path output-dir content)
-                (lambda (port)
-                  (let ((sxml-scm-code
-                          (cond ((or (and (assq '*contents-use-template* content)
-                                         (not (cadr (assq '*contents-use-template*
-                                                content))))
-                                     (and (assq '*contents-use-template* contents-config)
-                                          (not (cadr (assq '*contents-use-template*
-                                               contents-config)))))
-                                 '(begin *contents-body*))
-                                ((equal? (assq '*contents-format* content)
-                                         '('*contents-format* markdown))
-                                 (begin (display "MARK DOWN!")(newline)'()))
-                                (else template))))
-                     (display
-                       (elbow-sxml-generate-html
-                         sxml-scm-code
-                         contents-config
-                         content)
-                       port)))))
-            contents-original)))
+                 (%make-contents-config major-tags tag->path
+                                        contents-original base-contents-config))
+               (template (read-template template-dir))
+               ;; TODO: template直下にあるという前提、あとで設定で変更できるようにする
+               (tag-contents-env
+                 (call-with-input-file
+                   (string-append template-dir "/tag_contents.elbow")
+                   read)))
+          (elbow-misc/print-info "- Make output-directories.")
+          (elbow-full-build-create-output-dirs output-dir template-dir contents-dir)
+          (%create-index-page template contents-original contents-config
+                              tag-contents-env output-dir)
+          (%create-tag-pages template contents-original contents-config
+                             tag-contents-env output-dir all-tag-names)
+          (%create-content-pages template contents-original contents-config output-dir)))
 
        (define (elbow-full-build-create-output-dirs output-dir  template-dir contents-dir)
          (create-directory* output-dir)
@@ -270,7 +270,7 @@
                    (else
                      (error "undefined option " (car options))))))
 
-       (define (elbow-fuill-build/build-cmd-opt command-line-options)
+       (define (build-cmd-opt command-line-options)
          (let* ((parsed-option (parse-option command-line-options))
                 (contents-directory (elbow-misc/assoc-with-default
                                         "contents-directory"
