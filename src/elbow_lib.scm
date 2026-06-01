@@ -1,6 +1,5 @@
 (include
-  "./niyarin-rainbow-write/niyarin-rainbow-write.scm"
-  "./elbow_sxml.scm")
+  "./niyarin-rainbow-write/niyarin-rainbow-write.scm")
 
 (define-library (elbow lib)
    (cond-expand
@@ -10,7 +9,7 @@
                  (scheme set)
                  (scheme write)
                  (niyarin rainbow write)
-                 (elbow sxml)
+                 (prefix (elbow sxml) elbow.sxml/)
                  ))
       ((library (srfi 113))
        (import (scheme base)
@@ -18,7 +17,7 @@
                  (srfi 113)
                  (scheme write)
                  (niyarin rainbow write)
-                 (elbow sxml)
+                 (prefix (elbow sxml) elbow.sxml/)
                  )))
 
    (export
@@ -116,5 +115,5 @@
                 (cond ((assq '*contents-title* content) => cadr) (else "???")))))
           (lambda ()
               (let* ((body (cadr (assq '*contents-body* content)))
-                     (body-string (elbow-sxml-generate-html body env content #f)))
+                     (body-string (elbow.sxml/sxml-generate-html body env content #f)))
                      (elbow-lib/remove-tag body-string len)))))))

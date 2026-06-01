@@ -7,6 +7,7 @@
    (export elbow-init elbow-init-write)
    (begin
      (define (elbow-init command-line-options)
+       (write "INIT!")(newline)
        (let ((init-options
                '(("contents-directory" 1)
                  ("site-title" 1)

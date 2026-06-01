@@ -1,3 +1,5 @@
+(include "./sxml_scheme/sxml.scm")
+(include "elbow/sxml.scm")
 (include "elbow_lib.scm")
 (include "non_portable_utils/directory_utils.scm")
 

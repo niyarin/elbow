@@ -1,7 +1,6 @@
 (include "./non_portable_utils/directory_utils"
          "./elbow_markup.scm"
          "./elbow_contents.scm"
-         "./elbow_sxml.scm"
          "./elbow_misc.scm"
          "./elbow_subcontents.scm"
          "./lib/thread-syntax.scm")
@@ -18,7 +17,8 @@
               (srfi 114)
               (srfi 69)
               (prefix (elbow contents) econ/)
-              (elbow lib) (elbow markup) (elbow subcontents) (elbow sxml)
+              (elbow lib) (elbow markup) (elbow subcontents)
+              (prefix (elbow sxml) elbow.sxml/)
               (prefix (elbow misc) elbow-misc/)
               (only (niyarin thread-syntax) ->> ->)
               (prefix (elbow contents-middleware) emware/)
@@ -36,7 +36,7 @@
               (elbow lib)
               (elbow markup)
               (elbow subcontents)
-              (elbow sxml)
+              (prefix (elbow sxml) elbow.sxml/)
               (prefix (elbow misc) elbow-misc/)
               (prefix (elbow contents-middleware) emware/)
               (niyarin non-portable-utils directory-library-wrapper))))
@@ -186,7 +186,7 @@
                                (begin (display "MARK DOWN!") (newline) '()))
                               (else template))))
                   (display
-                    (elbow-sxml-generate-html sxml-scm-code contents-config content)
+                    (elbow.sxml/sxml-generate-html sxml-scm-code contents-config content)
                     port)))))
           contents-original))
 

@@ -1,5 +1,4 @@
 (include "./elbow_markup.scm")
-(include "./elbow_sxml.scm")
 (include "./elbow_lib.scm")
 (include "./elbow_misc.scm")
 
@@ -7,7 +6,7 @@
    (import (scheme base)
            (scheme write)
            (scheme file)
-           (elbow sxml)
+           (prefix (elbow sxml) elbow.sxml/)
            (prefix (elbow misc) elbow-misc/)
            (elbow markup)
            (elbow lib))
@@ -87,7 +86,7 @@
                          (string-append output-dir "/" (cadr (assq '*contents-sub-directory* env-contents)) "/"(vector-ref page-links i) )
                          (lambda (port)
                            (display
-                              (elbow-sxml-generate-html template env env-contents)
+                              (elbow.sxml/sxml-generate-html template env env-contents)
                               port)))
 
 
