@@ -3,6 +3,7 @@
            (scheme set)
            (scheme eval)
            (scheme write)
+           (elbow load-markdown)
            (prefix (niyarin sxml) sxml/))
 
    (export sxml-generate-html)
@@ -27,12 +28,13 @@
         (let* ((expand-env (elbow-sxml-make-default-environment))
                (contains? (cadr (assq 'contains? expand-env)))
                (eval-env (cadr (assq 'eval-env expand-env)))
-               (convert-env (cadr (assq 'convert-env expand-env)))
-               (eval-fn #f)
-               (eval-elem? (lambda (sxml)
-                             (contains? convert-env (car sxml)))))
-           (set! eval-fn
-                 (lambda (sxml) (sxml/sxml->xml-string
+	               (convert-env (cadr (assq 'convert-env expand-env)))
+	               (eval-fn #f)
+	               (eval-elem? (lambda (sxml)
+	                             (contains? convert-env (car sxml)))))
+	           (install-load-markdown! eval-env convert-env env-contents)
+	           (set! eval-fn
+	                 (lambda (sxml) (sxml/sxml->xml-string
                                    (eval sxml eval-env)
                                    `((,eval-elem? . ,eval-fn)))))
              (for-each
