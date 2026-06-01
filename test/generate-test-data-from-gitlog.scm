@@ -1,4 +1,6 @@
-(include "../src/elbow_init.scm")
+(include "../src/elbow_lib.scm")
+(include "../src/non_portable_utils/directory_utils.scm")
+(include "../src/elbow/init.scm")
 
 (import (scheme base)
         (scheme file)

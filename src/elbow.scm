@@ -1,5 +1,8 @@
+(include "elbow_lib.scm")
+(include "non_portable_utils/directory_utils.scm")
+
 (include "niyarin_optparse/niyarin_optparse.scm")
-(include "elbow_init.scm")
+(include "elbow/init.scm")
 (include "elbow_misc.scm")
 (include "full_build.scm")
 
