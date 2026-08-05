@@ -1,5 +1,7 @@
 (include "./sxml_scheme/sxml.scm")
 (include "md/core.scm")
+(include "md/url.scm")
+(include "md/transform.scm")
 (include "elbow/load-markdown.scm")
 (include "elbow/sxml.scm")
 (include "elbow_lib.scm")

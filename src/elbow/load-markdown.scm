@@ -2,7 +2,8 @@
   (import (scheme base)
           (scheme eval)
           (scheme set)
-          (md core))
+          (md core)
+          (md transform))
 
   (export install-load-markdown!)
 
@@ -41,7 +42,7 @@
     (define (make-load-markdown env-contents)
       (let ((base (base-directory env-contents)))
         (lambda (filename)
-          (markdown-file->sxml (join-path base filename)))))
+          (add-header-ids (markdown-file->sxml (join-path base filename))))))
 
     (define (install-load-markdown! eval-env convert-env env-contents)
       (eval
