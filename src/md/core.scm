@@ -297,6 +297,27 @@
           out
           (cons text out)))
 
+    (define (char-word? c)
+      (or (char-alphabetic? c) (char-numeric? c)))
+
+    (define (find-underscore-close s from)
+      (let loop ((i from))
+        (let ((pos (string-index-from s #\_ i)))
+          (and pos
+               (if (or (= (+ pos 1) (string-length s))
+                       (not (char-word? (string-ref s (+ pos 1)))))
+                   pos
+                   (loop (+ pos 1)))))))
+
+    (define (find-double-underscore-close s from)
+      (let loop ((i from))
+        (let ((pos (string-contains-from s "__" i)))
+          (and pos
+               (if (or (= (+ pos 2) (string-length s))
+                       (not (char-word? (string-ref s (+ pos 2)))))
+                   pos
+                   (loop (+ pos 1)))))))
+
     (define (parse-bracket-link s start)
       (let ((close-text (string-index-from s #\] (+ start 1))))
         (and close-text
@@ -360,7 +381,8 @@
                             (flush-text text out)))))
 
           ((and (string-prefix-at? s "__" i)
-                (string-contains-from s "__" (+ i 2)))
+                (or (= i 0) (not (char-word? (string-ref s (- i 1)))))
+                (find-double-underscore-close s (+ i 2)))
            => (lambda (end)
                 (loop (+ end 2)
                       ""
@@ -378,7 +400,8 @@
                             (flush-text text out)))))
 
           ((and (char=? (string-ref s i) #\_)
-                (string-index-from s #\_ (+ i 1)))
+                (or (= i 0) (not (char-word? (string-ref s (- i 1)))))
+                (find-underscore-close s (+ i 1)))
            => (lambda (end)
                 (loop (+ end 1)
                       ""
