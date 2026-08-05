@@ -190,6 +190,9 @@
                   (loop (+ i 1))))
             (string-trim (substring trimmed 1 (string-length trimmed))))))
 
+    (define (list-item-indent line)
+      (count-leading line #\space))
+
     (define (start-block? line)
       (or (blank-line? line)
           (heading-line? line)
@@ -230,20 +233,28 @@
              (cons 'blockquote (parse-blocks (reverse quote-lines)))
              rest))))
 
-    (define (parse-list lines ordered?)
+    (define (parse-list lines ordered? min-indent)
       (let ((line? (if ordered? ordered-list-line? unordered-list-line?)))
         (let loop ((rest lines)
                    (items '()))
-          (if (and (not (null? rest))
-                   (line? (car rest)))
-              (loop (cdr rest)
-                    (cons (cons 'li
-                                (parse-inline
-                                 (list-item-text (car rest) ordered?)))
-                          items))
-              (values
-               (cons (if ordered? 'ol 'ul) (reverse items))
-               rest)))))
+          (if (or (null? rest)
+                  (not (line? (car rest)))
+                  (not (= (list-item-indent (car rest)) min-indent)))
+              (values (cons (if ordered? 'ol 'ul) (reverse items)) rest)
+              (let* ((item-content (parse-inline (list-item-text (car rest) ordered?)))
+                     (after-item (cdr rest)))
+                (if (and (not (null? after-item))
+                         (or (unordered-list-line? (car after-item))
+                             (ordered-list-line? (car after-item)))
+                         (> (list-item-indent (car after-item)) min-indent))
+                    (let-values (((nested after-nested)
+                                   (parse-list after-item
+                                               (ordered-list-line? (car after-item))
+                                               (list-item-indent (car after-item)))))
+                      (loop after-nested
+                            (cons (cons 'li (append item-content (list nested))) items)))
+                    (loop after-item
+                          (cons (cons 'li item-content) items))))))))
 
     (define (parse-paragraph lines)
       (let loop ((rest lines)
@@ -272,10 +283,10 @@
            (let-values (((block next-rest) (parse-blockquote rest)))
              (loop next-rest (cons block blocks))))
           ((unordered-list-line? (car rest))
-           (let-values (((block next-rest) (parse-list rest #f)))
+           (let-values (((block next-rest) (parse-list rest #f (list-item-indent (car rest)))))
              (loop next-rest (cons block blocks))))
           ((ordered-list-line? (car rest))
-           (let-values (((block next-rest) (parse-list rest #t)))
+           (let-values (((block next-rest) (parse-list rest #t (list-item-indent (car rest)))))
              (loop next-rest (cons block blocks))))
           (else
            (let-values (((block next-rest) (parse-paragraph rest)))

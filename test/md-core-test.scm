@@ -19,6 +19,16 @@
             (ul (li "one") (li "two"))
             (ol (li "first") (li "second"))))
 
+(check (markdown-string->sxml "- one\n  - nested\n- two")
+       => '(*TOP*
+            (ul (li "one" (ul (li "nested")))
+                (li "two"))))
+
+(check (markdown-string->sxml "- a\n  - b\n  - c\n- d")
+       => '(*TOP*
+            (ul (li "a" (ul (li "b") (li "c")))
+                (li "d"))))
+
 (check (markdown-string->sxml "> quote\n> line")
        => '(*TOP*
             (blockquote (p "quote line"))))
