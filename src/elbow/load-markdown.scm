@@ -42,7 +42,7 @@
     (define (make-load-markdown env-contents)
       (let ((base (base-directory env-contents)))
         (lambda (filename)
-          (add-header-ids (markdown-file->sxml (join-path base filename))))))
+          (markdown-sxml-post-process (markdown-file->sxml (join-path base filename))))))
 
     (define (install-load-markdown! eval-env convert-env env-contents)
       (eval

@@ -354,7 +354,7 @@
            => (lambda (parsed)
                 (let ((alt (car parsed))
                       (url (cadr parsed))
-                      (next (caddr parsed)))
+                      (next (car (cddr parsed))))
                   (loop next
                         ""
                         (cons `(img (@ (src ,url) (alt ,alt)))
@@ -365,7 +365,7 @@
            => (lambda (parsed)
                 (let ((label (car parsed))
                       (url (cadr parsed))
-                      (next (caddr parsed)))
+                      (next (car (cddr parsed))))
                   (loop next
                         ""
                         (cons `(a (@ (href ,url)) ,@(parse-inline label))
