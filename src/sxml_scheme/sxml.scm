@@ -46,8 +46,11 @@
                        (if (null? (cdr key-val)) "" (%atom->string (cadr key-val)))
                        "\"")))))))
 
-     (define (make-self-closing-tag-string tag-name attribute)
-       (string-append "<" (symbol->string tag-name) attribute "/>"))
+     (define %void-elements
+       '(area base br col embed hr img input link meta param source track wbr))
+
+     (define (%void-element? tag)
+       (and (memq tag %void-elements) #t))
 
      (define (sxml->additional-expander sxml additional-expanders)
         (let loop ((additional-expanders additional-expanders))
@@ -82,8 +85,8 @@
                        (children (if attribute (cddr sxml) (cdr sxml)))
                        (attribute-string (if attribute
                                              (%attribute->string attribute) "")))
-                  (if (null? children)
-                    (make-self-closing-tag-string (car sxml) attribute-string)
+                  (if (and (null? children) (%void-element? (car sxml)))
+                    (string-append "<" (symbol->string (car sxml)) attribute-string "/>")
                      (string-append
                        "<" (symbol->string (car sxml)) attribute-string ">"
                        (apply string-append (map loop children))

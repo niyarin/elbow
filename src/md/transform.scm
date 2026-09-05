@@ -42,7 +42,7 @@
       (let* ((id (h2-id h2))
              (attrs (cadr h2))
              (children (cddr h2)))
-        `(h2 ,attrs (a (@ (class "header-anchor-link") (href ,(string-append "#" id)))) ,@children)))
+        `(h2 ,attrs (a (@ (class "header-anchor-link") (href ,(string-append "#" id)) (aria-hidden "true"))) ,@children)))
 
     (define (add-h2-anchor-links sxml)
       (cond
