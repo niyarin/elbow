@@ -2,7 +2,8 @@
   (import (scheme base)
           (scheme char)
           (scheme cxr)
-          (scheme file))
+          (scheme file)
+          (md math))
 
   (export markdown->sxml
           markdown-string->sxml
@@ -218,9 +219,10 @@
             (else (loop (cdr rest) (cons (car rest) body)))))))
 
     (define (make-code-block info body)
-      (if (string=? info "")
-          `(pre (code ,body))
-          `(pre (code (@ (class ,(string-append "language-" info))) ,body))))
+      (cond
+        ((string=? info "math") (tex->mathml-sxml body #t))
+        ((string=? info "")     `(pre (code ,body)))
+        (else `(pre (code (@ (class ,(string-append "language-" info))) ,body)))))
 
     (define (parse-blockquote lines)
       (let loop ((rest lines)

@@ -1,4 +1,5 @@
 (include "./sxml_scheme/sxml.scm")
+(include "md/math.scm")
 (include "md/core.scm")
 (include "md/url.scm")
 (include "md/transform.scm")
