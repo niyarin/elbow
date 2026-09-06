@@ -22,7 +22,7 @@
 
     (define op-symbols
       '(("times" . "×") ("div" . "÷") ("pm" . "±") ("mp" . "∓") ("cdot" . "⋅")
-        ("top" . "⊤") ("prime" . "′") ("|" . "‖")
+        ("top" . "⊤") ("prime" . "′")
         ("to" . "→") ("rightarrow" . "→") ("leftarrow" . "←") ("gets" . "←")
         ("leftrightarrow" . "↔")
         ("Rightarrow" . "⇒") ("Leftarrow" . "⇐") ("Leftrightarrow" . "⇔")
@@ -215,6 +215,18 @@
                (else (tok-val token))))
         (else "(")))
 
+    (define (parse-norm tokens)
+      (let loop ((rest tokens) (nodes '()))
+        (cond
+          ((null? rest)
+           (values `(mo "‖") tokens))
+          ((and (eq? (tok-type (car rest)) 'command)
+                (string=? (tok-val (car rest)) "|"))
+           (values (fenced "‖" (reverse nodes) "‖") (cdr rest)))
+          (else
+           (let-values (((node rem) (parse-atom rest)))
+             (loop rem (cons node nodes)))))))
+
     (define (parse-left tokens)
       (if (null? tokens)
           (values '(mo "(") '())
@@ -285,6 +297,7 @@
          (lambda (sym) (values `(mo ,sym) tokens)))
         ((lookup name accents)
          (parse-accent name tokens))
+        ((string=? name "|")     (parse-norm tokens))
         ((string=? name "frac")  (parse-frac tokens))
         ((string=? name "sqrt")  (parse-sqrt tokens))
         ((string=? name "left")  (parse-left tokens))
