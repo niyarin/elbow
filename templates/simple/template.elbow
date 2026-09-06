@@ -79,13 +79,13 @@
                                                (link (cadr tag-link)))
                                            (list
                                              'div
+                                             '(@ (class "tag-link"))
                                              `(a (@ (href
                                                       ,(string-append
                                                          (cut-tail-slash *contents-root-relative-path* )
                                                          link)))
                                                  (span (@ (class "tagbox"))
-                                                       ,tag))
-                                              '(br ""))))
+                                                       ,tag)))))
                                         *site-selected-tags-and-links*
                                        ))))))
 

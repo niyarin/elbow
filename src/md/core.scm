@@ -351,6 +351,17 @@
                        (string-append text "`")
                        out))))
 
+          ((char=? (string-ref s i) #\$)
+           (let ((end (string-index-from s #\$ (+ i 1))))
+             (if end
+                 (loop (+ end 1)
+                       ""
+                       (cons (tex->mathml-sxml (substring s (+ i 1) end) #f)
+                             (flush-text text out)))
+                 (loop (+ i 1)
+                       (string-append text "$")
+                       out))))
+
           ((and (string-prefix-at? s "![" i)
                 (parse-bracket-link s (+ i 1)))
            => (lambda (parsed)

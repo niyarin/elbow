@@ -162,14 +162,24 @@ body {
 
 
 h1 {
+    border-bottom: 3px solid #e8e8e8;
+    margin-bottom: 6px;
+    color: #2c3e50;
+}
+
+h2 {
     border-bottom: 2px solid #e8e8e8;
-    margin-bottom: 7px;
+    margin-bottom: 4px;
     color: #2c3e50;
 }
 
 h3 {
     font-size: 18px;
     margin: 0 0 6px 0;
+}
+
+ul, ol {
+    padding-left: 1.5em;
 }
 
 .main pre {
@@ -193,6 +203,10 @@ h3 {
     font-size: 13px;
     margin: 3px;
     display: inline-block;
+}
+
+.tag-link {
+    margin: 5px;
 }
 
 .contents-pair {
@@ -224,3 +238,15 @@ h3 {
     font-size: 14px;
     margin-top: 4px;
 }
+
+.header-anchor-link::before {
+    margin-left: -1em;
+    content: "🔗";
+    font-size: 0.6em;
+    visibility: hidden;
+}
+
+h2:hover .header-anchor-link::before {
+    visibility: visible;
+}
+

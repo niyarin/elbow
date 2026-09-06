@@ -22,7 +22,11 @@
 
     (define op-symbols
       '(("times" . "×") ("div" . "÷") ("pm" . "±") ("mp" . "∓") ("cdot" . "⋅")
-        ("top" . "⊤") ("prime" . "′") ("|" . "‖")))
+        ("top" . "⊤") ("prime" . "′") ("|" . "‖")
+        ("to" . "→") ("rightarrow" . "→") ("leftarrow" . "←") ("gets" . "←")
+        ("leftrightarrow" . "↔")
+        ("Rightarrow" . "⇒") ("Leftarrow" . "⇐") ("Leftrightarrow" . "⇔")
+        ("uparrow" . "↑") ("downarrow" . "↓")))
 
     (define limit-ops
       '(("sum" . "∑") ("prod" . "∏")))
